@@ -19,70 +19,99 @@
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
   }
 
-  /* MENU SCREEN */
+  /* MENU SCREEN (Mobile-First Responsive Fix) */
   #menu {
     position: absolute;
     inset: 0;
-    background: rgba(15, 15, 25, 0.96);
+    background: #0f0f19;
     z-index: 100;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 14px;
-    padding: 20px;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 16px 14px 28px 14px;
     text-align: center;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .menu-inner {
+    margin: auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 560px;
   }
   #menu h1 {
-    font-size: 2.8rem;
+    font-size: clamp(1.9rem, 7vw, 2.8rem);
     color: #ffcc00;
-    text-shadow: 4px 4px 0px #cc3300;
+    text-shadow: 3px 3px 0px #cc3300;
+    line-height: 1.1;
+  }
+  .subtitle {
+    font-size: clamp(0.8rem, 3.2vw, 0.95rem);
+    color: #ccc;
+    line-height: 1.35;
+    max-width: 460px;
   }
   .mode-tabs {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 4px;
+    gap: 8px;
+    width: 100%;
+  }
+  .mode-tabs .btn {
+    flex: 1 1 auto;
+    min-width: 135px;
+    padding: 9px 10px;
+    font-size: clamp(0.8rem, 3vw, 0.95rem);
   }
   .panel {
     background: rgba(255,255,255,0.06);
     border: 2px solid #444;
     border-radius: 10px;
-    padding: 16px 24px;
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    max-width: 680px;
+    gap: 10px;
     width: 100%;
+  }
+  .panel p {
+    font-size: clamp(0.82rem, 3.2vw, 0.95rem);
   }
   .diff-container {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+  .diff-container .btn {
+    width: 100%;
   }
   .btn {
-    padding: 10px 18px;
-    font-size: 1rem;
+    padding: 10px 14px;
+    font-size: clamp(0.85rem, 3.4vw, 1rem);
     font-weight: bold;
-    border: 3px solid #fff;
-    background: #333;
+    border: 2px solid #fff;
+    background: #2b2b36;
     color: #fff;
     cursor: pointer;
     border-radius: 8px;
     transition: transform 0.1s;
   }
   .btn:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
   .btn.selected {
     background: #ffcc00;
@@ -91,35 +120,42 @@
   }
   #start-btn {
     background: #28a745;
-    font-size: 1.4rem;
-    padding: 12px 42px;
+    font-size: clamp(1.15rem, 4.5vw, 1.35rem);
+    padding: 12px 36px;
+    width: 100%;
+    max-width: 320px;
+    border-width: 3px;
+    box-shadow: 0 4px 0 #166528;
+    margin-top: 2px;
+    flex-shrink: 0;
   }
 
   /* ROSTER CARDS */
   .slot-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    width: 100%;
   }
   .slot-card {
-    background: #222;
+    background: #1c1c26;
     border: 2px solid #666;
     border-radius: 8px;
-    padding: 10px 14px;
-    min-width: 155px;
+    padding: 8px 10px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
     justify-content: center;
   }
   .slot-card h4 {
     color: #ffcc00;
+    font-size: 0.9rem;
   }
   .slot-select {
-    padding: 6px 10px;
-    font-size: 0.95rem;
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 0.85rem;
     font-weight: bold;
     background: #111;
     color: #fff;
@@ -128,36 +164,49 @@
     cursor: pointer;
   }
 
-  /* HUD */
+  #mobile-opt-wrap {
+    cursor: pointer;
+    font-size: clamp(0.82rem, 3.2vw, 0.95rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: 100%;
+  }
+
+  /* HUD (Hidden while in Menu) */
   #hud {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    display: flex;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    display: none;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
     z-index: 50;
     pointer-events: none;
-    font-size: 0.95rem;
+    font-size: clamp(0.75rem, 2.8vw, 0.92rem);
     font-weight: bold;
     text-shadow: 2px 2px 0 #000;
   }
   .hud-box {
-    background: rgba(0,0,0,0.65);
-    padding: 8px 12px;
+    background: rgba(0,0,0,0.68);
+    padding: 6px 10px;
     border-radius: 6px;
     border: 2px solid #555;
     pointer-events: auto;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
   }
   .cam-btn {
-    padding: 4px 10px;
-    font-size: 0.85rem;
+    padding: 4px 8px;
+    font-size: 0.78rem;
     font-weight: bold;
     background: #333;
     color: #fff;
@@ -176,6 +225,7 @@
     position: relative;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background: linear-gradient(to bottom, #5c94fc, #85b2ff);
     overflow: hidden;
   }
@@ -207,7 +257,6 @@
     border-top: 4px dashed rgba(255,255,255,0.12);
     z-index: 1;
   }
-  /* Both solid and non-solid bushes use this exact same class */
   .fake-bush {
     position: absolute;
     background: #2d8a2d;
@@ -316,9 +365,9 @@
   /* MOBILE CONTROLS */
   #mobile-controls {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
+    bottom: 18px;
+    left: 16px;
+    right: 16px;
     display: none;
     justify-content: space-between;
     align-items: flex-end;
@@ -329,8 +378,8 @@
     display: flex;
   }
   #stick-zone {
-    width: 130px;
-    height: 130px;
+    width: 124px;
+    height: 124px;
     background: rgba(255,255,255,0.18);
     border: 3px solid rgba(255,255,255,0.45);
     border-radius: 50%;
@@ -339,33 +388,33 @@
     touch-action: none;
   }
   #stick-nub {
-    width: 54px;
-    height: 54px;
+    width: 50px;
+    height: 50px;
     background: rgba(255,255,255,0.85);
     border-radius: 50%;
     position: absolute;
-    top: 35px;
-    left: 35px;
+    top: 34px;
+    left: 34px;
     pointer-events: none;
   }
 
   /* CLASSIC X Y A B DIAMOND */
   #abxy-pad {
-    width: 150px;
-    height: 150px;
+    width: 142px;
+    height: 142px;
     position: relative;
     pointer-events: auto;
     touch-action: none;
   }
   .pad-btn {
     position: absolute;
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     border: 3px solid #fff;
     color: #fff;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -376,135 +425,137 @@
     transform: scale(0.9);
     filter: brightness(1.3);
   }
-  #btn-x { top: 0; left: 51px; background: #007bff; }
-  #btn-y { top: 51px; left: 0; background: #28a745; }
-  #btn-a { top: 51px; right: 0; background: #dc3545; }
-  #btn-b { bottom: 0; left: 51px; background: #ffc107; color: #000; }
+  #btn-x { top: 0; left: 48px; background: #007bff; }
+  #btn-y { top: 48px; left: 0; background: #28a745; }
+  #btn-a { top: 48px; right: 0; background: #dc3545; }
+  #btn-b { bottom: 0; left: 48px; background: #ffc107; color: #000; }
 
   /* WIN/LOSE BANNER */
   #banner {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.88);
     z-index: 90;
     display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 18px;
     text-align: center;
     padding: 20px;
   }
   #banner h2 {
-    font-size: 2.5rem;
+    font-size: clamp(1.8rem, 6vw, 2.5rem);
   }
 </style>
 </head>
 <body>
 
 <div id="menu">
-  <h1>YOU VS NPC</h1>
-  <p>Stomp <b>Squishballs</b>, jump over <b>Mouthplants</b>, &amp; outsmart the Hard NPCs!</p>
+  <div class="menu-inner">
+    <h1>YOU VS NPC</h1>
+    <p class="subtitle">Stomp <b>Squishballs</b>, jump over <b>Mouthplants</b>, &amp; outsmart the Hard NPCs!</p>
 
-  <!-- 3 Mode Tabs -->
-  <div class="mode-tabs">
-    <button class="btn selected" id="tab-play">🎮 1v1 (YOU VS NPC)</button>
-    <button class="btn" id="tab-3p">🔥 3-PLAYER (YOU VS 2 NPCs)</button>
-    <button class="btn" id="tab-spectate">🍿 SPECTATE FIGHT</button>
-  </div>
-
-  <!-- Panel 1: 1v1 You vs NPC -->
-  <div class="panel" id="panel-play">
-    <p>Choose NPC Difficulty to race against:</p>
-    <div class="diff-container" id="solo-diff">
-      <button class="btn selected" data-diff="easy">EASY (Late + Varied)</button>
-      <button class="btn" data-diff="medium">MEDIUM (Good Jump + Varied)</button>
-      <button class="btn" data-diff="hard">HARD (Shortcuts + Strategies)</button>
+    <!-- 3 Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="btn selected" id="tab-play">🎮 1v1</button>
+      <button class="btn" id="tab-3p">🔥 3-PLAYER</button>
+      <button class="btn" id="tab-spectate">🍿 SPECTATE</button>
     </div>
-  </div>
 
-  <!-- Panel 2: 3-Player Mode (Slot 1 = YOU, Slot 2 & 3 = Any NPCs) -->
-  <div class="panel" id="panel-3p" style="display:none;">
-    <p><b>3-Player Chaos:</b> Slot #1 is <b>YOU</b>! Pick the NPCs for Slot #2 and Slot #3:</p>
-    <div class="slot-row">
-      <div class="slot-card" style="border-color:#ff4444;">
-        <h4 style="color:#ff4444;">SLOT #1</h4>
-        <div style="font-size:1.1rem; font-weight:bold; padding:8px 0;">🎮 YOU (PLAYER)</div>
-        <span style="font-size:0.8rem; color:#aaa;">3 Lives + Head Stomp</span>
-      </div>
-
-      <div class="slot-card">
-        <h4 style="color:#00d0ff;">SLOT #2 (NPC)</h4>
-        <select id="p3-slot-2" class="slot-select">
-          <option value="easy">EASY</option>
-          <option value="medium" selected>MEDIUM</option>
-          <option value="hard">HARD</option>
-        </select>
-        <span style="font-size:0.8rem; color:#aaa;">Rival #1</span>
-      </div>
-
-      <div class="slot-card">
-        <h4 style="color:#ff66ff;">SLOT #3 (NPC)</h4>
-        <select id="p3-slot-3" class="slot-select">
-          <option value="easy">EASY</option>
-          <option value="medium">MEDIUM</option>
-          <option value="hard" selected>HARD</option>
-        </select>
-        <span style="font-size:0.8rem; color:#aaa;">Rival #2</span>
+    <!-- Panel 1: 1v1 You vs NPC -->
+    <div class="panel" id="panel-play">
+      <p>Choose NPC Difficulty to race against:</p>
+      <div class="diff-container" id="solo-diff">
+        <button class="btn selected" data-diff="easy">EASY (Late + Varied)</button>
+        <button class="btn" data-diff="medium">MEDIUM (Good Jump + Varied)</button>
+        <button class="btn" data-diff="hard">HARD (Shortcuts + Strategies)</button>
       </div>
     </div>
-  </div>
 
-  <!-- Panel 3: Spectate NPC Fight -->
-  <div class="panel" id="panel-spectate" style="display:none;">
-    <p>Pick up to <b>3 NPCs</b> to battle each other &amp; choose your starting POV camera:</p>
-    <div class="slot-row">
-      <div class="slot-card">
-        <h4 style="color:#00d0ff;">NPC #1</h4>
-        <select id="spec-slot-1" class="slot-select">
-          <option value="easy" selected>EASY</option>
-          <option value="medium">MEDIUM</option>
-          <option value="hard">HARD</option>
-        </select>
-        <label style="font-size:0.85rem; cursor:pointer;">
-          <input type="radio" name="init-cam" value="0" checked> Watch POV
-        </label>
-      </div>
+    <!-- Panel 2: 3-Player Mode (Slot 1 = YOU, Slot 2 & 3 = Any NPCs) -->
+    <div class="panel" id="panel-3p" style="display:none;">
+      <p><b>3-Player Mode:</b> Slot #1 is <b>YOU</b>! Pick the 2 rival NPCs:</p>
+      <div class="slot-row">
+        <div class="slot-card" style="border-color:#ff4444;">
+          <h4 style="color:#ff4444;">SLOT #1</h4>
+          <div style="font-size:0.95rem; font-weight:bold; padding:4px 0;">🎮 YOU</div>
+          <span style="font-size:0.75rem; color:#aaa;">3 Lives + Stomp</span>
+        </div>
 
-      <div class="slot-card">
-        <h4 style="color:#ff66ff;">NPC #2</h4>
-        <select id="spec-slot-2" class="slot-select">
-          <option value="easy">EASY</option>
-          <option value="medium">MEDIUM</option>
-          <option value="hard" selected>HARD</option>
-        </select>
-        <label style="font-size:0.85rem; cursor:pointer;">
-          <input type="radio" name="init-cam" value="1"> Watch POV
-        </label>
-      </div>
+        <div class="slot-card">
+          <h4 style="color:#00d0ff;">SLOT #2</h4>
+          <select id="p3-slot-2" class="slot-select">
+            <option value="easy">EASY</option>
+            <option value="medium" selected>MEDIUM</option>
+            <option value="hard">HARD</option>
+          </select>
+          <span style="font-size:0.75rem; color:#aaa;">Rival NPC #1</span>
+        </div>
 
-      <div class="slot-card">
-        <h4 style="color:#aaff00;">NPC #3 (Optional)</h4>
-        <select id="spec-slot-3" class="slot-select">
-          <option value="none">-- OFF --</option>
-          <option value="easy">EASY</option>
-          <option value="medium">MEDIUM</option>
-          <option value="hard" selected>HARD</option>
-        </select>
-        <label style="font-size:0.85rem; cursor:pointer;">
-          <input type="radio" name="init-cam" value="2"> Watch POV
-        </label>
+        <div class="slot-card">
+          <h4 style="color:#ff66ff;">SLOT #3</h4>
+          <select id="p3-slot-3" class="slot-select">
+            <option value="easy">EASY</option>
+            <option value="medium">MEDIUM</option>
+            <option value="hard" selected>HARD</option>
+          </select>
+          <span style="font-size:0.75rem; color:#aaa;">Rival NPC #2</span>
+        </div>
       </div>
     </div>
+
+    <!-- Panel 3: Spectate NPC Fight -->
+    <div class="panel" id="panel-spectate" style="display:none;">
+      <p>Pick up to <b>3 NPCs</b> to battle &amp; select starting POV:</p>
+      <div class="slot-row">
+        <div class="slot-card">
+          <h4 style="color:#00d0ff;">NPC #1</h4>
+          <select id="spec-slot-1" class="slot-select">
+            <option value="easy" selected>EASY</option>
+            <option value="medium">MEDIUM</option>
+            <option value="hard">HARD</option>
+          </select>
+          <label style="font-size:0.8rem; cursor:pointer;">
+            <input type="radio" name="init-cam" value="0" checked> POV
+          </label>
+        </div>
+
+        <div class="slot-card">
+          <h4 style="color:#ff66ff;">NPC #2</h4>
+          <select id="spec-slot-2" class="slot-select">
+            <option value="easy">EASY</option>
+            <option value="medium">MEDIUM</option>
+            <option value="hard" selected>HARD</option>
+          </select>
+          <label style="font-size:0.8rem; cursor:pointer;">
+            <input type="radio" name="init-cam" value="1"> POV
+          </label>
+        </div>
+
+        <div class="slot-card">
+          <h4 style="color:#aaff00;">NPC #3</h4>
+          <select id="spec-slot-3" class="slot-select">
+            <option value="none">-- OFF --</option>
+            <option value="easy">EASY</option>
+            <option value="medium">MEDIUM</option>
+            <option value="hard" selected>HARD</option>
+          </select>
+          <label style="font-size:0.8rem; cursor:pointer;">
+            <input type="radio" name="init-cam" value="2"> POV
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Controls Checkbox -->
+    <label id="mobile-opt-wrap">
+      <input type="checkbox" id="mobile-toggle" style="transform:scale(1.3);">
+      <span>Enable Mobile Controls (Stick + X Y A B)</span>
+    </label>
+
+    <button class="btn" id="start-btn">START RACE</button>
   </div>
-
-  <!-- Mobile Controls Checkbox (Visible in playable modes) -->
-  <label id="mobile-opt-wrap" style="cursor:pointer; font-size:1.05rem;">
-    <input type="checkbox" id="mobile-toggle" style="transform:scale(1.4); margin-right:8px;">
-    Enable Mobile Controls (Stick + X Y A B)
-  </label>
-
-  <button class="btn" id="start-btn">START RACE</button>
 </div>
 
 <div id="hud">
@@ -536,7 +587,7 @@
 
 <div id="banner">
   <h2 id="banner-title">RACE OVER!</h2>
-  <p id="banner-sub" style="font-size:1.2rem;"></p>
+  <p id="banner-sub" style="font-size:1.1rem;"></p>
   <button class="btn" onclick="location.reload()">BACK TO MENU</button>
 </div>
 
@@ -547,7 +598,7 @@
   const mobileOptWrap = document.getElementById('mobile-opt-wrap');
   if (isTouchDevice) mobileToggle.checked = true;
 
-  let gameMode = 'play'; // 'play', '3p', or 'spectate'
+  let gameMode = 'play';
   const tabPlay = document.getElementById('tab-play');
   const tab3P = document.getElementById('tab-3p');
   const tabSpec = document.getElementById('tab-spectate');
@@ -565,11 +616,11 @@
     if (mode === 'play') {
       tabPlay.classList.add('selected');
       panelPlay.style.display = 'flex';
-      mobileOptWrap.style.display = 'block';
+      mobileOptWrap.style.display = 'flex';
     } else if (mode === '3p') {
       tab3P.classList.add('selected');
       panel3P.style.display = 'flex';
-      mobileOptWrap.style.display = 'block';
+      mobileOptWrap.style.display = 'flex';
     } else {
       tabSpec.classList.add('selected');
       panelSpec.style.display = 'flex';
@@ -598,7 +649,6 @@
   const GROUND_Y = 520;
   const GOAL_X = 3650;
 
-  // SOLID Level Geometry (Includes ONLY the real solid bushes & sky bridges)
   const solids = [
     { x: 0, y: GROUND_Y, w: 4200, h: 300, type: 'ground' },
     { x: 500, y: 410, w: 160, h: 24, type: 'platform' },
@@ -615,7 +665,6 @@
     { x: 2600, y: 305, w: 820, h: 22, type: 'fake-bg-shortcut', secret: true }
   ];
 
-  // DECOY NON-SOLID BUSHES
   const decoBushes = [
     { x: 140, y: 415, w: 90, h: 105 },
     { x: 690, y: 415, w: 90, h: 105 },
@@ -772,7 +821,6 @@
     });
   }
 
-  // Controls State
   const keys = { left: false, right: false, jump: false, sprint: false };
 
   window.addEventListener('keydown', e => {
@@ -788,7 +836,6 @@
     if (e.code === 'ShiftLeft' || e.code === 'KeyX' || e.code === 'KeyY') keys.sprint = false;
   });
 
-  // Mobile Analog Stick
   const stickZone = document.getElementById('stick-zone');
   const stickNub = document.getElementById('stick-nub');
   let stickTouchId = null;
@@ -799,7 +846,7 @@
     const cy = rect.top + rect.height / 2;
     let dx = clientX - cx;
     let dy = clientY - cy;
-    const maxR = 42;
+    const maxR = 40;
     const dist = Math.hypot(dx, dy);
     if (dist > maxR) {
       dx = (dx / dist) * maxR;
@@ -911,7 +958,6 @@
 
     const rivals = actors.filter(a => a.id !== npc.id);
 
-    // HARD MODE RIVAL TRACKING & ACTIVE SABOTAGE STRATEGIES
     if (diff === 'hard') {
       let rivalAhead = false;
       let closeFollower = null;
@@ -980,7 +1026,6 @@
     npc.vx = targetSpeed;
     if (!npc.onGround) return;
 
-    // ENEMY REACTION
     for (let e of enemies) {
       if (!e.alive) continue;
       const dist = e.x - npc.x;
@@ -1009,7 +1054,6 @@
     }
   }
 
-  // Player AND Hard NPCs can head-bounce off rivals in mid-air!
   function handlePvPCollisions() {
     for (let i = 0; i < actors.length; i++) {
       const a = actors[i];
@@ -1132,6 +1176,7 @@
 
   document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('menu').style.display = 'none';
+    document.getElementById('hud').style.display = 'flex';
     initWorldDOM();
 
     if (gameMode === 'play') {
@@ -1157,7 +1202,6 @@
       cameraTargetIndex = 0;
 
     } else if (gameMode === '3p') {
-      // 3-PLAYER MODE: Slot 1 = YOU, Slot 2 & 3 = Chosen NPCs
       if (mobileToggle.checked) mobileControls.classList.add('active');
       const npc2Diff = document.getElementById('p3-slot-2').value;
       const npc3Diff = document.getElementById('p3-slot-3').value;
@@ -1192,7 +1236,6 @@
       cameraTargetIndex = 0;
 
     } else {
-      // SPECTATE FIGHT MODE
       document.getElementById('hud-mobile-btn').style.display = 'none';
       const s1 = document.getElementById('spec-slot-1').value;
       const s2 = document.getElementById('spec-slot-2').value;
