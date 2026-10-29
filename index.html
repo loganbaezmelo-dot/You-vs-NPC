@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>You vs NPC</title>
+<style>
+  * {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    margin: 0;
+    padding: 0;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  body {
+    background: #111;
+    color: #fff;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* MENU SCREEN */
+  #menu {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 15, 25, 0.95);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 20px;
+    text-align: center;
+  }
+  #menu h1 {
+    font-size: 3rem;
+    color: #ffcc00;
+    text-shadow: 4px 4px 0px #cc3300;
+  }
+  .diff-container {
+    display: flex;
+    gap: 12px;
+  }
+  .btn {
+    padding: 12px 22px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: 3px solid #fff;
+    background: #333;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: transform 0.1s;
+  }
+  .btn:active {
+    transform: scale(0.95);
+  }
+  .btn.selected {
+    background: #ffcc00;
+    color: #000;
+    border-color: #fff;
+  }
+  #start-btn {
+    background: #28a745;
+    font-size: 1.4rem;
+    padding: 14px 40px;
+  }
+
+  /* HUD */
+  #hud {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 50;
+    pointer-events: none;
+    font-size: 1rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 0 #000;
+  }
+  .hud-box {
+    background: rgba(0,0,0,0.6);
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 2px solid #555;
+    pointer-events: auto;
+  }
+
+  /* GAME VIEWPORT (DOM ONLY, NO CANVAS) */
+  #viewport {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom, #5c94fc, #85b2ff);
+    overflow: hidden;
+  }
+  #world {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4500px;
+    height: 100%;
+    will-change: transform;
+  }
+
+  /* WORLD OBJECTS */
+  .ground {
+    position: absolute;
+    background: #c84c0c;
+    border-top: 6px solid #00a800;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.4);
+  }
+  .platform {
+    position: absolute;
+    background: #b85c1c;
+    border: 3px solid #4a2000;
+    border-top: 5px solid #e09050;
+  }
+  /* Fake background wall / secret shortcut */
+  .fake-bg-shortcut {
+    position: absolute;
+    background: #4778d4;
+    border-top: 4px dashed rgba(255,255,255,0.12);
+    z-index: 1;
+  }
+  .fake-bush {
+    position: absolute;
+    background: #2d8a2d;
+    border-radius: 20px 20px 0 0;
+    opacity: 0.75;
+    z-index: 1;
+  }
+
+  /* PLAYERS */
+  .actor {
+    position: absolute;
+    width: 34px;
+    height: 42px;
+    border-radius: 6px;
+    z-index: 10;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+  }
+  .actor-label {
+    position: absolute;
+    top: -18px;
+    background: rgba(0,0,0,0.7);
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+    color: #fff;
+  }
+  #player {
+    background: #ff2a2a;
+    border: 3px solid #800000;
+    z-index: 12;
+  }
+  #npc {
+    background: #00d0ff;
+    border: 3px solid #004d66;
+    z-index: 11;
+  }
+
+  /* ENEMIES */
+  .squishball {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: radial-gradient(circle at 10px 10px, #ff8800, #772200);
+    border: 3px solid #220000;
+    border-radius: 50%;
+    z-index: 9;
+  }
+  .squishball.squished {
+    height: 12px !important;
+    transform: translateY(20px);
+    opacity: 0.5;
+  }
+  .mouthplant {
+    position: absolute;
+    width: 38px;
+    height: 52px;
+    background: #148014;
+    border: 3px solid #063806;
+    border-radius: 16px 16px 0 0;
+    z-index: 9;
+  }
+  .mouthplant::before {
+    content: "V V V";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    height: 18px;
+    background: #a80000;
+    color: #fff;
+    font-size: 10px;
+    text-align: center;
+    line-height: 18px;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+
+  /* FINISH FLAG */
+  #goal {
+    position: absolute;
+    width: 20px;
+    height: 350px;
+    background: #eee;
+    border: 3px solid #444;
+    z-index: 8;
+  }
+  #goal::after {
+    content: "FINISH";
+    position: absolute;
+    top: 10px;
+    left: 17px;
+    background: #ffcc00;
+    color: #000;
+    padding: 8px 14px;
+    font-weight: bold;
+    border: 3px solid #000;
+  }
+
+  /* MOBILE CONTROLS */
+  #mobile-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    display: none;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 60;
+    pointer-events: none;
+  }
+  #mobile-controls.active {
+    display: flex;
+  }
+  #stick-zone {
+    width: 130px;
+    height: 130px;
+    background: rgba(255,255,255,0.18);
+    border: 3px solid rgba(255,255,255,0.45);
+    border-radius: 50%;
+    position: relative;
+    pointer-events: auto;
+    touch-action: none;
+  }
+  #stick-nub {
+    width: 54px;
+    height: 54px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    position: absolute;
+    top: 35px;
+    left: 35px;
+    pointer-events: none;
+  }
+
+  /* CLASSIC X Y A B DIAMOND */
+  #abxy-pad {
+    width: 150px;
+    height: 150px;
+    position: relative;
+    pointer-events: auto;
+    touch-action: none;
+  }
+  .pad-btn {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    user-select: none;
+  }
+  .pad-btn:active, .pad-btn.pressed {
+    transform: scale(0.9);
+    filter: brightness(1.3);
+  }
+  /* Diamond layout */
+  #btn-x { top: 0; left: 51px; background: #007bff; }
+  #btn-y { top: 51px; left: 0; background: #28a745; }
+  #btn-a { top: 51px; right: 0; background: #dc3545; }
+  #btn-b { bottom: 0; left: 51px; background: #ffc107; color: #000; }
+
+  /* WIN/LOSE BANNER */
+  #banner {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 90;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    text-align: center;
+  }
+  #banner h2 {
+    font-size: 2.8rem;
+  }
+</style>
+</head>
+<body>
+
+<div id="menu">
+  <h1>YOU VS NPC</h1>
+  <p>Watch out for rolling <b>Squishballs</b> (stomp them!) &amp; <b>Mouthplants</b> (jump over or get swallowed!)</p>
+  <div>
+    <p style="margin-bottom:8px;">Select NPC Difficulty:</p>
+    <div class="diff-container">
+      <button class="btn selected" data-diff="easy">EASY (Late Reaction)</button>
+      <button class="btn" data-diff="medium">MEDIUM (Good Jump)</button>
+      <button class="btn" data-diff="hard">HARD (Secret Shortcuts)</button>
+    </div>
+  </div>
+  <div>
+    <label style="cursor:pointer; font-size:1.1rem;">
+      <input type="checkbox" id="mobile-toggle" style="transform:scale(1.4); margin-right:8px;">
+      Enable Mobile Controls (Stick + X Y A B)
+    </label>
+  </div>
+  <button class="btn" id="start-btn">PLAY</button>
+</div>
+
+<div id="hud">
+  <div class="hud-box">
+    YOU ❤️ <span id="p-lives">3</span> | Deaths: <span id="p-deaths">0</span>
+  </div>
+  <div class="hud-box">
+    NPC (<span id="npc-diff-label">EASY</span>) 💀 Deaths: <span id="n-deaths">0</span>
+  </div>
+  <button class="hud-box" id="hud-mobile-btn" style="cursor:pointer; color:#fff;">📱 Controls</button>
+</div>
+
+<div id="viewport">
+  <div id="world">
+    <div id="player" class="actor"><div class="actor-label">YOU</div></div>
+    <div id="npc" class="actor"><div class="actor-label">NPC</div></div>
+    <div id="goal"></div>
+  </div>
+</div>
+
+<div id="mobile-controls">
+  <div id="stick-zone">
+    <div id="stick-nub"></div>
+  </div>
+  <div id="abxy-pad">
+    <div class="pad-btn" id="btn-x">X</div>
+    <div class="pad-btn" id="btn-y">Y</div>
+    <div class="pad-btn" id="btn-a">A</div>
+    <div class="pad-btn" id="btn-b">B</div>
+  </div>
+</div>
+
+<div id="banner">
+  <h2 id="banner-title">YOU WIN!</h2>
+  <p id="banner-sub"></p>
+  <button class="btn" onclick="location.reload()">BACK TO MENU</button>
+</div>
+
+<script>
+  // Auto-detect mobile touchscreen
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const mobileToggle = document.getElementById('mobile-toggle');
+  const mobileControls = document.getElementById('mobile-controls');
+  if (isTouchDevice) mobileToggle.checked = true;
+
+  let npcDiff = 'easy';
+  document.querySelectorAll('.diff-container .btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.diff-container .btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      npcDiff = btn.dataset.diff;
+    });
+  });
+
+  document.getElementById('hud-mobile-btn').addEventListener('click', () => {
+    mobileControls.classList.toggle('active');
+  });
+
+  // World constants
+  const GRAVITY = 0.65;
+  const GROUND_Y = 520;
+  const GOAL_X = 3650;
+
+  // Level Geometry
+  // "secret: true" means it looks like background clouds/walls/bushes, but has collision! Hard NPC uses these!
+  const solids = [
+    { x: 0, y: GROUND_Y, w: 4200, h: 300, type: 'ground' },
+    // Standard platforms
+    { x: 500, y: 410, w: 160, h: 24, type: 'platform' },
+    { x: 1150, y: 400, w: 180, h: 24, type: 'platform' },
+    { x: 1950, y: 390, w: 200, h: 24, type: 'platform' },
+    { x: 2700, y: 410, w: 180, h: 24, type: 'platform' },
+
+    // HIDDEN BACKGROUND SHORTCUTS (Look like background sky/bushes, Hard NPC routes onto them)
+    { x: 260, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
+    { x: 370, y: 310, w: 750, h: 22, type: 'fake-bg-shortcut', secret: true },
+    { x: 1380, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
+    { x: 1500, y: 300, w: 950, h: 22, type: 'fake-bg-shortcut', secret: true },
+    { x: 2600, y: 305, w: 820, h: 22, type: 'fake-bg-shortcut', secret: true }
+  ];
+
+  // Enemies list
+  let enemies = [];
+  const initialEnemies = [
+    { type: 'squishball', x: 550, y: GROUND_Y - 32, vx: -2.2, minX: 360, maxX: 780 },
+    { type: 'mouthplant', x: 860, y: GROUND_Y - 52 },
+    { type: 'squishball', x: 1180, y: GROUND_Y - 32, vx: -2.6, minX: 960, maxX: 1350 },
+    { type: 'mouthplant', x: 1600, y: GROUND_Y - 52 },
+    { type: 'squishball', x: 1900, y: GROUND_Y - 32, vx: -3.0, minX: 1680, maxX: 2150 },
+    { type: 'mouthplant', x: 2250, y: GROUND_Y - 52 },
+    { type: 'squishball', x: 2650, y: GROUND_Y - 32, vx: -2.8, minX: 2350, maxX: 2850 },
+    { type: 'mouthplant', x: 3000, y: GROUND_Y - 52 },
+    { type: 'squishball', x: 3350, y: GROUND_Y - 32, vx: -3.4, minX: 3100, maxX: 3550 }
+  ];
+
+  // Hard Mode Prebuilt Shortcut Waypoints (jumps onto fake bushes and sky bridges)
+  const hardShortcutTriggerX = [215, 330, 1340, 1445, 2540];
+
+  const worldEl = document.getElementById('world');
+  const playerEl = document.getElementById('player');
+  const npcEl = document.getElementById('npc');
+  const goalEl = document.getElementById('goal');
+
+  const pState = {
+    x: 80, y: GROUND_Y - 42, vx: 0, vy: 0, w: 34, h: 42,
+    onGround: false, lives: 3, deaths: 0
+  };
+
+  const nState = {
+    x: 80, y: GROUND_Y - 42, vx: 0, vy: 0, w: 34, h: 42,
+    onGround: false, deaths: 0,
+    jumpLock: 0,
+    decidedEnemyIds: new Set()
+  };
+
+  // Build DOM World
+  function initWorldDOM() {
+    goalEl.style.left = GOAL_X + 'px';
+    goalEl.style.top = (GROUND_Y - 350) + 'px';
+
+    solids.forEach(s => {
+      const div = document.createElement('div');
+      div.className = s.type;
+      div.style.left = s.x + 'px';
+      div.style.top = s.y + 'px';
+      div.style.width = s.w + 'px';
+      div.style.height = s.h + 'px';
+      worldEl.appendChild(div);
+    });
+
+    initialEnemies.forEach((e, idx) => {
+      const el = document.createElement('div');
+      el.className = e.type;
+      worldEl.appendChild(el);
+      enemies.push({
+        id: idx,
+        type: e.type,
+        x: e.x,
+        y: e.y,
+        w: e.type === 'squishball' ? 32 : 38,
+        h: e.type === 'squishball' ? 32 : 52,
+        vx: e.vx || 0,
+        minX: e.minX || 0,
+        maxX: e.maxX || 0,
+        alive: true,
+        el: el
+      });
+    });
+  }
+
+  // Controls State
+  const keys = { left: false, right: false, jump: false, sprint: false };
+
+  window.addEventListener('keydown', e => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') keys.jump = true;
+    if (e.code === 'ShiftLeft' || e.code === 'KeyX' || e.code === 'KeyY') keys.sprint = true;
+  });
+  window.addEventListener('keyup', e => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') keys.jump = false;
+    if (e.code === 'ShiftLeft' || e.code === 'KeyX' || e.code === 'KeyY') keys.sprint = false;
+  });
+
+  // Mobile Analog Stick
+  const stickZone = document.getElementById('stick-zone');
+  const stickNub = document.getElementById('stick-nub');
+  let stickTouchId = null;
+
+  function handleStickMove(clientX, clientY) {
+    const rect = stickZone.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    let dx = clientX - cx;
+    let dy = clientY - cy;
+    const maxR = 42;
+    const dist = Math.hypot(dx, dy);
+    if (dist > maxR) {
+      dx = (dx / dist) * maxR;
+      dy = (dy / dist) * maxR;
+    }
+    stickNub.style.transform = `translate(${dx}px, ${dy}px)`;
+    keys.left = dx < -12;
+    keys.right = dx > 12;
+  }
+
+  function resetStick() {
+    stickTouchId = null;
+    stickNub.style.transform = `translate(0px, 0px)`;
+    keys.left = false;
+    keys.right = false;
+  }
+
+  stickZone.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    stickTouchId = t.identifier;
+    handleStickMove(t.clientX, t.clientY);
+  }, { passive: false });
+
+  stickZone.addEventListener('touchmove', e => {
+    e.preventDefault();
+    for (let t of e.changedTouches) {
+      if (t.identifier === stickTouchId) handleStickMove(t.clientX, t.clientY);
+    }
+  }, { passive: false });
+
+  stickZone.addEventListener('touchend', e => {
+    for (let t of e.changedTouches) {
+      if (t.identifier === stickTouchId) resetStick();
+    }
+  });
+
+  // Mobile Mouse fallback for testing on PC
+  let mouseStickDown = false;
+  stickZone.addEventListener('mousedown', e => { mouseStickDown = true; handleStickMove(e.clientX, e.clientY); });
+  window.addEventListener('mousemove', e => { if (mouseStickDown) handleStickMove(e.clientX, e.clientY); });
+  window.addEventListener('mouseup', () => { if (mouseStickDown) { mouseStickDown = false; resetStick(); } });
+
+  // X Y A B Buttons (A & B = Jump, X & Y = Sprint/Boost)
+  function bindPadButton(id, keyProp) {
+    const btn = document.getElementById(id);
+    const press = e => { e.preventDefault(); keys[keyProp] = true; btn.classList.add('pressed'); };
+    const release = e => { e.preventDefault(); keys[keyProp] = false; btn.classList.remove('pressed'); };
+    btn.addEventListener('touchstart', press, { passive: false });
+    btn.addEventListener('touchend', release, { passive: false });
+    btn.addEventListener('mousedown', press);
+    btn.addEventListener('mouseup', release);
+    btn.addEventListener('mouseleave', release);
+  }
+  bindPadButton('btn-a', 'jump');
+  bindPadButton('btn-b', 'jump');
+  bindPadButton('btn-x', 'sprint');
+  bindPadButton('btn-y', 'sprint');
+
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function applyPhysics(actor, jumpPower) {
+    actor.vy += GRAVITY;
+    actor.x += actor.vx;
+    if (actor.x < 0) actor.x = 0;
+
+    const prevBottom = actor.y + actor.h;
+    actor.y += actor.vy;
+    actor.onGround = false;
+
+    for (let s of solids) {
+      if (actor.x + actor.w > s.x && actor.x < s.x + s.w) {
+        // Landing on top of platform/ground
+        if (actor.vy >= 0 && prevBottom <= s.y + 14 && actor.y + actor.h >= s.y) {
+          actor.y = s.y - actor.h;
+          actor.vy = 0;
+          actor.onGround = true;
+        }
+      }
+    }
+  }
+
+  function respawnPlayer() {
+    pState.lives--;
+    pState.deaths++;
+    document.getElementById('p-lives').textContent = Math.max(0, pState.lives);
+    document.getElementById('p-deaths').textContent = pState.deaths;
+    if (pState.lives <= 0) {
+      endGame(false, "You ran out of lives! Got cooked by the enemies 💀");
+      return;
+    }
+    pState.x = Math.max(60, pState.x - 260);
+    pState.y = 180;
+    pState.vx = 0;
+    pState.vy = 0;
+  }
+
+  function respawnNPC() {
+    nState.deaths++;
+    document.getElementById('n-deaths').textContent = nState.deaths;
+    nState.x = Math.max(60, nState.x - 240);
+    nState.y = 180;
+    nState.vx = 0;
+    nState.vy = 0;
+    nState.decidedEnemyIds.clear();
+  }
+
+  // NPC AI Brain
+  function updateNPCAI() {
+    const speed = npcDiff === 'easy' ? 3.5 : (npcDiff === 'medium' ? 4.3 : 4.9);
+    const jumpStrength = npcDiff === 'easy' ? -11.6 : -13.6; // Medium & Hard have higher jump
+    nState.vx = speed;
+
+    if (!nState.onGround) return;
+
+    // HARD MODE: Prebuilt map of hidden background shortcuts
+    if (npcDiff === 'hard') {
+      for (let tx of hardShortcutTriggerX) {
+        if (Math.abs(nState.x - tx) < 12) {
+          nState.vy = jumpStrength;
+          nState.onGround = false;
+          return;
+        }
+      }
+    }
+
+    // Check upcoming enemies
+    for (let e of enemies) {
+      if (!e.alive) continue;
+      const dist = e.x - nState.x;
+      if (dist < 0 || dist > 220) continue;
+
+      if (npcDiff === 'easy') {
+        // Easy mode reacts super late (dist < 34) and only sometimes times it right
+        if (dist < 34 && !nState.decidedEnemyIds.has(e.id)) {
+          nState.decidedEnemyIds.add(e.id);
+          if (Math.random() < 0.28) {
+            nState.vy = jumpStrength;
+            nState.onGround = false;
+          }
+        }
+      } else {
+        // Medium & Hard react at optimal distance
+        const sweetSpot = e.type === 'mouthplant' ? 95 : 85;
+        if (dist <= sweetSpot && dist > 30) {
+          nState.vy = jumpStrength;
+          nState.onGround = false;
+          return;
+        }
+      }
+    }
+  }
+
+  function handleEnemyCollisions(actor, isPlayer) {
+    for (let e of enemies) {
+      if (!e.alive) continue;
+      if (rectsOverlap(actor, e)) {
+        if (e.type === 'mouthplant') {
+          // Mouthplant swallows you immediately if you touch it
+          isPlayer ? respawnPlayer() : respawnNPC();
+          return;
+        } else if (e.type === 'squishball') {
+          // Squishball: Stomp from above to defeat, otherwise take damage
+          const fallingOnTop = actor.vy > 0 && (actor.y + actor.h - actor.vy) <= e.y + 18;
+          if (fallingOnTop) {
+            e.alive = false;
+            e.el.classList.add('squished');
+            actor.vy = -10.5; // Bounce off squishball
+          } else {
+            isPlayer ? respawnPlayer() : respawnNPC();
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  let gameRunning = false;
+
+  function endGame(playerWon, reason) {
+    gameRunning = false;
+    const banner = document.getElementById('banner');
+    const title = document.getElementById('banner-title');
+    const sub = document.getElementById('banner-sub');
+    banner.style.display = 'flex';
+    title.textContent = playerWon ? "YOU BEAT THE NPC! 🏆" : "YOU LOST 💀";
+    title.style.color = playerWon ? "#ffcc00" : "#ff4444";
+    sub.textContent = reason;
+  }
+
+  function gameLoop() {
+    if (!gameRunning) return;
+
+    // Player Movement
+    const moveSpeed = keys.sprint ? 5.6 : 4.3;
+    if (keys.left) pState.vx = -moveSpeed;
+    else if (keys.right) pState.vx = moveSpeed;
+    else pState.vx *= 0.75;
+
+    if (keys.jump && pState.onGround) {
+      pState.vy = -13.4;
+      pState.onGround = false;
+    }
+
+    applyPhysics(pState);
+    updateNPCAI();
+    applyPhysics(nState);
+
+    // Update Enemies
+    for (let e of enemies) {
+      if (!e.alive) continue;
+      if (e.type === 'squishball') {
+        e.x += e.vx;
+        if (e.x <= e.minX || e.x >= e.maxX) e.vx *= -1;
+      }
+      e.el.style.transform = `translate3d(${e.x}px, ${e.y}px, 0)`;
+    }
+
+    handleEnemyCollisions(pState, true);
+    handleEnemyCollisions(nState, false);
+
+    // Check Finish Line
+    if (pState.x >= GOAL_X) {
+      endGame(true, `You crossed the finish line first! NPC died ${nState.deaths} times.`);
+      return;
+    }
+    if (nState.x >= GOAL_X) {
+      endGame(false, `The ${npcDiff.toUpperCase()} NPC beat you to the flag! 💀`);
+      return;
+    }
+
+    // Render Actors via DOM transforms
+    playerEl.style.transform = `translate3d(${pState.x}px, ${pState.y}px, 0)`;
+    npcEl.style.transform = `translate3d(${nState.x}px, ${nState.y}px, 0)`;
+
+    // Camera follow Player
+    const camX = Math.max(0, Math.min(pState.x - window.innerWidth * 0.3, 4200 - window.innerWidth));
+    worldEl.style.transform = `translate3d(${-camX}px, 0, 0)`;
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  document.getElementById('start-btn').addEventListener('click', () => {
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('npc-diff-label').textContent = npcDiff.toUpperCase();
+    if (mobileToggle.checked) {
+      mobileControls.classList.add('active');
+    }
+    initWorldDOM();
+    gameRunning = true;
+    requestAnimationFrame(gameLoop);
+  });
+</script>
+</body>
+</html>
