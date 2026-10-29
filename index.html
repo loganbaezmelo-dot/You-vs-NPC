@@ -29,28 +29,48 @@
   #menu {
     position: absolute;
     inset: 0;
-    background: rgba(15, 15, 25, 0.95);
+    background: rgba(15, 15, 25, 0.96);
     z-index: 100;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 18px;
+    gap: 16px;
     padding: 20px;
     text-align: center;
+    overflow-y: auto;
   }
   #menu h1 {
-    font-size: 3rem;
+    font-size: 2.8rem;
     color: #ffcc00;
     text-shadow: 4px 4px 0px #cc3300;
   }
-  .diff-container {
+  .mode-tabs {
     display: flex;
     gap: 12px;
+    margin-bottom: 4px;
+  }
+  .panel {
+    background: rgba(255,255,255,0.06);
+    border: 2px solid #444;
+    border-radius: 10px;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    max-width: 650px;
+    width: 100%;
+  }
+  .diff-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
   }
   .btn {
-    padding: 12px 22px;
-    font-size: 1.1rem;
+    padding: 10px 18px;
+    font-size: 1rem;
     font-weight: bold;
     border: 3px solid #fff;
     background: #333;
@@ -70,7 +90,39 @@
   #start-btn {
     background: #28a745;
     font-size: 1.4rem;
-    padding: 14px 40px;
+    padding: 12px 42px;
+  }
+
+  /* SPECTATE FIGHT ROSTER */
+  .slot-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .slot-card {
+    background: #222;
+    border: 2px solid #666;
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  .slot-card h4 {
+    color: #ffcc00;
+  }
+  .slot-select {
+    padding: 6px 10px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    background: #111;
+    color: #fff;
+    border: 2px solid #888;
+    border-radius: 6px;
+    cursor: pointer;
   }
 
   /* HUD */
@@ -80,19 +132,40 @@
     left: 10px;
     right: 10px;
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
+    gap: 8px;
     z-index: 50;
     pointer-events: none;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: bold;
     text-shadow: 2px 2px 0 #000;
   }
   .hud-box {
-    background: rgba(0,0,0,0.6);
-    padding: 8px 14px;
+    background: rgba(0,0,0,0.65);
+    padding: 8px 12px;
     border-radius: 6px;
     border: 2px solid #555;
     pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .cam-btn {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    background: #333;
+    color: #fff;
+    border: 2px solid #999;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .cam-btn.active-cam {
+    background: #ffcc00;
+    color: #000;
+    border-color: #fff;
   }
 
   /* GAME VIEWPORT (DOM ONLY, NO CANVAS) */
@@ -140,7 +213,7 @@
     z-index: 1;
   }
 
-  /* PLAYERS */
+  /* ACTORS */
   .actor {
     position: absolute;
     width: 34px;
@@ -155,22 +228,13 @@
   }
   .actor-label {
     position: absolute;
-    top: -18px;
-    background: rgba(0,0,0,0.7);
-    padding: 1px 5px;
+    top: -20px;
+    background: rgba(0,0,0,0.75);
+    padding: 2px 6px;
     border-radius: 4px;
     white-space: nowrap;
     color: #fff;
-  }
-  #player {
-    background: #ff2a2a;
-    border: 3px solid #800000;
-    z-index: 12;
-  }
-  #npc {
-    background: #00d0ff;
-    border: 3px solid #004d66;
-    z-index: 11;
+    border: 1px solid rgba(255,255,255,0.4);
   }
 
   /* ENEMIES */
@@ -297,7 +361,6 @@
     transform: scale(0.9);
     filter: brightness(1.3);
   }
-  /* Diamond layout */
   #btn-x { top: 0; left: 51px; background: #007bff; }
   #btn-y { top: 51px; left: 0; background: #28a745; }
   #btn-a { top: 51px; right: 0; background: #dc3545; }
@@ -315,9 +378,10 @@
     justify-content: center;
     gap: 20px;
     text-align: center;
+    padding: 20px;
   }
   #banner h2 {
-    font-size: 2.8rem;
+    font-size: 2.5rem;
   }
 </style>
 </head>
@@ -325,38 +389,86 @@
 
 <div id="menu">
   <h1>YOU VS NPC</h1>
-  <p>Watch out for rolling <b>Squishballs</b> (stomp them!) &amp; <b>Mouthplants</b> (jump over or get swallowed!)</p>
-  <div>
-    <p style="margin-bottom:8px;">Select NPC Difficulty:</p>
-    <div class="diff-container">
+  <p>Stomp <b>Squishballs</b> &amp; jump over <b>Mouthplants</b>!</p>
+
+  <!-- Mode Selector -->
+  <div class="mode-tabs">
+    <button class="btn selected" id="tab-play">🎮 YOU VS NPC</button>
+    <button class="btn" id="tab-spectate">🍿 SPECTATE FIGHT</button>
+  </div>
+
+  <!-- Panel 1: You vs NPC -->
+  <div class="panel" id="panel-play">
+    <p>Choose NPC Difficulty to race against:</p>
+    <div class="diff-container" id="solo-diff">
       <button class="btn selected" data-diff="easy">EASY (Late Reaction)</button>
       <button class="btn" data-diff="medium">MEDIUM (Good Jump)</button>
       <button class="btn" data-diff="hard">HARD (Secret Shortcuts)</button>
     </div>
-  </div>
-  <div>
-    <label style="cursor:pointer; font-size:1.1rem;">
+    <label style="cursor:pointer; font-size:1.05rem; margin-top:6px;">
       <input type="checkbox" id="mobile-toggle" style="transform:scale(1.4); margin-right:8px;">
       Enable Mobile Controls (Stick + X Y A B)
     </label>
   </div>
-  <button class="btn" id="start-btn">PLAY</button>
+
+  <!-- Panel 2: Spectate NPC Fight -->
+  <div class="panel" id="panel-spectate" style="display:none;">
+    <p>Pick up to <b>3 NPCs</b> to battle each other &amp; choose your starting POV camera:</p>
+    <div class="slot-row">
+      <div class="slot-card">
+        <h4 style="color:#00d0ff;">NPC #1</h4>
+        <select id="spec-slot-1" class="slot-select">
+          <option value="easy" selected>EASY</option>
+          <option value="medium">MEDIUM</option>
+          <option value="hard">HARD</option>
+        </select>
+        <label style="font-size:0.85rem; cursor:pointer;">
+          <input type="radio" name="init-cam" value="0" checked> Watch POV
+        </label>
+      </div>
+
+      <div class="slot-card">
+        <h4 style="color:#ff66ff;">NPC #2</h4>
+        <select id="spec-slot-2" class="slot-select">
+          <option value="easy">EASY</option>
+          <option value="medium">MEDIUM</option>
+          <option value="hard" selected>HARD</option>
+        </select>
+        <label style="font-size:0.85rem; cursor:pointer;">
+          <input type="radio" name="init-cam" value="1"> Watch POV
+        </label>
+      </div>
+
+      <div class="slot-card">
+        <h4 style="color:#aaff00;">NPC #3 (Optional)</h4>
+        <select id="spec-slot-3" class="slot-select">
+          <option value="none">-- OFF --</option>
+          <option value="easy">EASY</option>
+          <option value="medium" selected>MEDIUM</option>
+          <option value="hard">HARD</option>
+        </select>
+        <label style="font-size:0.85rem; cursor:pointer;">
+          <input type="radio" name="init-cam" value="2"> Watch POV
+        </label>
+      </div>
+    </div>
+    <p style="font-size:0.85rem; color:#aaa;">(You can also switch cameras live at the top of the screen during the race!)</p>
+  </div>
+
+  <button class="btn" id="start-btn">START</button>
 </div>
 
 <div id="hud">
-  <div class="hud-box">
-    YOU ❤️ <span id="p-lives">3</span> | Deaths: <span id="p-deaths">0</span>
-  </div>
-  <div class="hud-box">
-    NPC (<span id="npc-diff-label">EASY</span>) 💀 Deaths: <span id="n-deaths">0</span>
+  <div class="hud-box" id="stats-hud"></div>
+  <div class="hud-box" id="cam-hud">
+    <span>🎥 POV:</span>
+    <div id="cam-buttons" style="display:flex; gap:6px;"></div>
   </div>
   <button class="hud-box" id="hud-mobile-btn" style="cursor:pointer; color:#fff;">📱 Controls</button>
 </div>
 
 <div id="viewport">
   <div id="world">
-    <div id="player" class="actor"><div class="actor-label">YOU</div></div>
-    <div id="npc" class="actor"><div class="actor-label">NPC</div></div>
     <div id="goal"></div>
   </div>
 </div>
@@ -374,24 +486,46 @@
 </div>
 
 <div id="banner">
-  <h2 id="banner-title">YOU WIN!</h2>
-  <p id="banner-sub"></p>
+  <h2 id="banner-title">RACE OVER!</h2>
+  <p id="banner-sub" style="font-size:1.2rem;"></p>
   <button class="btn" onclick="location.reload()">BACK TO MENU</button>
 </div>
 
 <script>
-  // Auto-detect mobile touchscreen
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   const mobileToggle = document.getElementById('mobile-toggle');
   const mobileControls = document.getElementById('mobile-controls');
   if (isTouchDevice) mobileToggle.checked = true;
 
-  let npcDiff = 'easy';
-  document.querySelectorAll('.diff-container .btn').forEach(btn => {
+  // Menu Mode Switching
+  let gameMode = 'play'; // 'play' or 'spectate'
+  const tabPlay = document.getElementById('tab-play');
+  const tabSpec = document.getElementById('tab-spectate');
+  const panelPlay = document.getElementById('panel-play');
+  const panelSpec = document.getElementById('panel-spectate');
+
+  tabPlay.addEventListener('click', () => {
+    gameMode = 'play';
+    tabPlay.classList.add('selected');
+    tabSpec.classList.remove('selected');
+    panelPlay.style.display = 'flex';
+    panelSpec.style.display = 'none';
+  });
+
+  tabSpec.addEventListener('click', () => {
+    gameMode = 'spectate';
+    tabSpec.classList.add('selected');
+    tabPlay.classList.remove('selected');
+    panelSpec.style.display = 'flex';
+    panelPlay.style.display = 'none';
+  });
+
+  let soloNpcDiff = 'easy';
+  document.querySelectorAll('#solo-diff .btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.diff-container .btn').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('#solo-diff .btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
-      npcDiff = btn.dataset.diff;
+      soloNpcDiff = btn.dataset.diff;
     });
   });
 
@@ -405,16 +539,14 @@
   const GOAL_X = 3650;
 
   // Level Geometry
-  // "secret: true" means it looks like background clouds/walls/bushes, but has collision! Hard NPC uses these!
   const solids = [
     { x: 0, y: GROUND_Y, w: 4200, h: 300, type: 'ground' },
-    // Standard platforms
     { x: 500, y: 410, w: 160, h: 24, type: 'platform' },
     { x: 1150, y: 400, w: 180, h: 24, type: 'platform' },
     { x: 1950, y: 390, w: 200, h: 24, type: 'platform' },
     { x: 2700, y: 410, w: 180, h: 24, type: 'platform' },
 
-    // HIDDEN BACKGROUND SHORTCUTS (Look like background sky/bushes, Hard NPC routes onto them)
+    // HIDDEN BACKGROUND SHORTCUTS (Used by Hard NPC)
     { x: 260, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
     { x: 370, y: 310, w: 750, h: 22, type: 'fake-bg-shortcut', secret: true },
     { x: 1380, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
@@ -422,7 +554,6 @@
     { x: 2600, y: 305, w: 820, h: 22, type: 'fake-bg-shortcut', secret: true }
   ];
 
-  // Enemies list
   let enemies = [];
   const initialEnemies = [
     { type: 'squishball', x: 550, y: GROUND_Y - 32, vx: -2.2, minX: 360, maxX: 780 },
@@ -436,27 +567,46 @@
     { type: 'squishball', x: 3350, y: GROUND_Y - 32, vx: -3.4, minX: 3100, maxX: 3550 }
   ];
 
-  // Hard Mode Prebuilt Shortcut Waypoints (jumps onto fake bushes and sky bridges)
   const hardShortcutTriggerX = [215, 330, 1340, 1445, 2540];
 
   const worldEl = document.getElementById('world');
-  const playerEl = document.getElementById('player');
-  const npcEl = document.getElementById('npc');
   const goalEl = document.getElementById('goal');
+  const statsHud = document.getElementById('stats-hud');
+  const camButtonsContainer = document.getElementById('cam-buttons');
 
-  const pState = {
-    x: 80, y: GROUND_Y - 42, vx: 0, vy: 0, w: 34, h: 42,
-    onGround: false, lives: 3, deaths: 0
-  };
+  // Dynamic list of racers (Player + NPCs or up to 3 NPCs)
+  let actors = [];
+  let cameraTargetIndex = 0;
 
-  const nState = {
-    x: 80, y: GROUND_Y - 42, vx: 0, vy: 0, w: 34, h: 42,
-    onGround: false, deaths: 0,
-    jumpLock: 0,
-    decidedEnemyIds: new Set()
-  };
+  function createActor({ name, isPlayer, diff, color, borderColor, startX }) {
+    const el = document.createElement('div');
+    el.className = 'actor';
+    el.style.background = color;
+    el.style.border = `3px solid ${borderColor}`;
+    const label = document.createElement('div');
+    label.className = 'actor-label';
+    label.textContent = name;
+    el.appendChild(label);
+    worldEl.appendChild(el);
 
-  // Build DOM World
+    return {
+      name,
+      isPlayer,
+      diff,
+      x: startX,
+      y: GROUND_Y - 42,
+      vx: 0,
+      vy: 0,
+      w: 34,
+      h: 42,
+      onGround: false,
+      lives: 3,
+      deaths: 0,
+      decidedEnemyIds: new Set(),
+      el
+    };
+  }
+
   function initWorldDOM() {
     goalEl.style.left = GOAL_X + 'px';
     goalEl.style.top = (GROUND_Y - 350) + 'px';
@@ -488,6 +638,30 @@
         alive: true,
         el: el
       });
+    });
+  }
+
+  function renderHUD() {
+    statsHud.innerHTML = actors.map(a => {
+      if (a.isPlayer) {
+        return `<span style="color:#ff6666;">${a.name} ❤️${a.lives} (💀${a.deaths})</span>`;
+      }
+      return `<span>${a.name}: 💀${a.deaths}</span>`;
+    }).join(' &nbsp;|&nbsp; ');
+  }
+
+  function setupCameraButtons() {
+    camButtonsContainer.innerHTML = '';
+    actors.forEach((a, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'cam-btn' + (idx === cameraTargetIndex ? ' active-cam' : '');
+      btn.textContent = a.name;
+      btn.addEventListener('click', () => {
+        cameraTargetIndex = idx;
+        document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active-cam'));
+        btn.classList.add('active-cam');
+      });
+      camButtonsContainer.appendChild(btn);
     });
   }
 
@@ -556,13 +730,11 @@
     }
   });
 
-  // Mobile Mouse fallback for testing on PC
   let mouseStickDown = false;
   stickZone.addEventListener('mousedown', e => { mouseStickDown = true; handleStickMove(e.clientX, e.clientY); });
   window.addEventListener('mousemove', e => { if (mouseStickDown) handleStickMove(e.clientX, e.clientY); });
   window.addEventListener('mouseup', () => { if (mouseStickDown) { mouseStickDown = false; resetStick(); } });
 
-  // X Y A B Buttons (A & B = Jump, X & Y = Sprint/Boost)
   function bindPadButton(id, keyProp) {
     const btn = document.getElementById(id);
     const press = e => { e.preventDefault(); keys[keyProp] = true; btn.classList.add('pressed'); };
@@ -582,7 +754,7 @@
     return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
   }
 
-  function applyPhysics(actor, jumpPower) {
+  function applyPhysics(actor) {
     actor.vy += GRAVITY;
     actor.x += actor.vx;
     if (actor.x < 0) actor.x = 0;
@@ -593,7 +765,6 @@
 
     for (let s of solids) {
       if (actor.x + actor.w > s.x && actor.x < s.x + s.w) {
-        // Landing on top of platform/ground
         if (actor.vy >= 0 && prevBottom <= s.y + 14 && actor.y + actor.h >= s.y) {
           actor.y = s.y - actor.h;
           actor.vy = 0;
@@ -603,45 +774,39 @@
     }
   }
 
-  function respawnPlayer() {
-    pState.lives--;
-    pState.deaths++;
-    document.getElementById('p-lives').textContent = Math.max(0, pState.lives);
-    document.getElementById('p-deaths').textContent = pState.deaths;
-    if (pState.lives <= 0) {
-      endGame(false, "You ran out of lives! Got cooked by the enemies 💀");
-      return;
+  function respawnActor(actor) {
+    actor.deaths++;
+    if (actor.isPlayer) {
+      actor.lives--;
+      renderHUD();
+      if (actor.lives <= 0) {
+        endGame(false, "You ran out of lives! Got cooked by the enemies 💀");
+        return;
+      }
+    } else {
+      renderHUD();
     }
-    pState.x = Math.max(60, pState.x - 260);
-    pState.y = 180;
-    pState.vx = 0;
-    pState.vy = 0;
+    actor.x = Math.max(60, actor.x - 250);
+    actor.y = 180;
+    actor.vx = 0;
+    actor.vy = 0;
+    actor.decidedEnemyIds.clear();
   }
 
-  function respawnNPC() {
-    nState.deaths++;
-    document.getElementById('n-deaths').textContent = nState.deaths;
-    nState.x = Math.max(60, nState.x - 240);
-    nState.y = 180;
-    nState.vx = 0;
-    nState.vy = 0;
-    nState.decidedEnemyIds.clear();
-  }
+  function updateNPCAI(npc) {
+    const diff = npc.diff;
+    const speed = diff === 'easy' ? 3.5 : (diff === 'medium' ? 4.3 : 4.9);
+    const jumpStrength = diff === 'easy' ? -11.6 : -13.6;
+    npc.vx = speed;
 
-  // NPC AI Brain
-  function updateNPCAI() {
-    const speed = npcDiff === 'easy' ? 3.5 : (npcDiff === 'medium' ? 4.3 : 4.9);
-    const jumpStrength = npcDiff === 'easy' ? -11.6 : -13.6; // Medium & Hard have higher jump
-    nState.vx = speed;
-
-    if (!nState.onGround) return;
+    if (!npc.onGround) return;
 
     // HARD MODE: Prebuilt map of hidden background shortcuts
-    if (npcDiff === 'hard') {
+    if (diff === 'hard') {
       for (let tx of hardShortcutTriggerX) {
-        if (Math.abs(nState.x - tx) < 12) {
-          nState.vy = jumpStrength;
-          nState.onGround = false;
+        if (Math.abs(npc.x - tx) < 12) {
+          npc.vy = jumpStrength;
+          npc.onGround = false;
           return;
         }
       }
@@ -650,47 +815,43 @@
     // Check upcoming enemies
     for (let e of enemies) {
       if (!e.alive) continue;
-      const dist = e.x - nState.x;
+      const dist = e.x - npc.x;
       if (dist < 0 || dist > 220) continue;
 
-      if (npcDiff === 'easy') {
-        // Easy mode reacts super late (dist < 34) and only sometimes times it right
-        if (dist < 34 && !nState.decidedEnemyIds.has(e.id)) {
-          nState.decidedEnemyIds.add(e.id);
+      if (diff === 'easy') {
+        if (dist < 34 && !npc.decidedEnemyIds.has(e.id)) {
+          npc.decidedEnemyIds.add(e.id);
           if (Math.random() < 0.28) {
-            nState.vy = jumpStrength;
-            nState.onGround = false;
+            npc.vy = jumpStrength;
+            npc.onGround = false;
           }
         }
       } else {
-        // Medium & Hard react at optimal distance
         const sweetSpot = e.type === 'mouthplant' ? 95 : 85;
         if (dist <= sweetSpot && dist > 30) {
-          nState.vy = jumpStrength;
-          nState.onGround = false;
+          npc.vy = jumpStrength;
+          npc.onGround = false;
           return;
         }
       }
     }
   }
 
-  function handleEnemyCollisions(actor, isPlayer) {
+  function handleEnemyCollisions(actor) {
     for (let e of enemies) {
       if (!e.alive) continue;
       if (rectsOverlap(actor, e)) {
         if (e.type === 'mouthplant') {
-          // Mouthplant swallows you immediately if you touch it
-          isPlayer ? respawnPlayer() : respawnNPC();
+          respawnActor(actor);
           return;
         } else if (e.type === 'squishball') {
-          // Squishball: Stomp from above to defeat, otherwise take damage
           const fallingOnTop = actor.vy > 0 && (actor.y + actor.h - actor.vy) <= e.y + 18;
           if (fallingOnTop) {
             e.alive = false;
             e.el.classList.add('squished');
-            actor.vy = -10.5; // Bounce off squishball
+            actor.vy = -10.5;
           } else {
-            isPlayer ? respawnPlayer() : respawnNPC();
+            respawnActor(actor);
             return;
           }
         }
@@ -700,34 +861,37 @@
 
   let gameRunning = false;
 
-  function endGame(playerWon, reason) {
+  function endGame(highlightWin, message) {
     gameRunning = false;
     const banner = document.getElementById('banner');
     const title = document.getElementById('banner-title');
     const sub = document.getElementById('banner-sub');
     banner.style.display = 'flex';
-    title.textContent = playerWon ? "YOU BEAT THE NPC! 🏆" : "YOU LOST 💀";
-    title.style.color = playerWon ? "#ffcc00" : "#ff4444";
-    sub.textContent = reason;
+    title.textContent = highlightWin ? "WINNER! 🏆" : "YOU LOST 💀";
+    title.style.color = highlightWin ? "#ffcc00" : "#ff4444";
+    sub.textContent = message;
   }
 
   function gameLoop() {
     if (!gameRunning) return;
 
-    // Player Movement
-    const moveSpeed = keys.sprint ? 5.6 : 4.3;
-    if (keys.left) pState.vx = -moveSpeed;
-    else if (keys.right) pState.vx = moveSpeed;
-    else pState.vx *= 0.75;
+    // Update all racers
+    for (let a of actors) {
+      if (a.isPlayer) {
+        const moveSpeed = keys.sprint ? 5.6 : 4.3;
+        if (keys.left) a.vx = -moveSpeed;
+        else if (keys.right) a.vx = moveSpeed;
+        else a.vx *= 0.75;
 
-    if (keys.jump && pState.onGround) {
-      pState.vy = -13.4;
-      pState.onGround = false;
+        if (keys.jump && a.onGround) {
+          a.vy = -13.4;
+          a.onGround = false;
+        }
+      } else {
+        updateNPCAI(a);
+      }
+      applyPhysics(a);
     }
-
-    applyPhysics(pState);
-    updateNPCAI();
-    applyPhysics(nState);
 
     // Update Enemies
     for (let e of enemies) {
@@ -739,25 +903,32 @@
       e.el.style.transform = `translate3d(${e.x}px, ${e.y}px, 0)`;
     }
 
-    handleEnemyCollisions(pState, true);
-    handleEnemyCollisions(nState, false);
+    // Check Collisions & Finish Line
+    for (let a of actors) {
+      handleEnemyCollisions(a);
+      if (!gameRunning) return;
 
-    // Check Finish Line
-    if (pState.x >= GOAL_X) {
-      endGame(true, `You crossed the finish line first! NPC died ${nState.deaths} times.`);
-      return;
+      if (a.x >= GOAL_X) {
+        if (gameMode === 'play') {
+          if (a.isPlayer) {
+            endGame(true, `You beat ${actors[1].name} to the finish line!`);
+          } else {
+            endGame(false, `${a.name} beat you to the flag! 💀`);
+          }
+        } else {
+          // Spectate Fight Winner Breakdown
+          const summary = actors.map(r => `${r.name} (💀${r.deaths} deaths)`).join(' vs ');
+          endGame(true, `${a.name} WON THE FIGHT! Final Stats: ${summary}`);
+        }
+        return;
+      }
+
+      a.el.style.transform = `translate3d(${a.x}px, ${a.y}px, 0)`;
     }
-    if (nState.x >= GOAL_X) {
-      endGame(false, `The ${npcDiff.toUpperCase()} NPC beat you to the flag! 💀`);
-      return;
-    }
 
-    // Render Actors via DOM transforms
-    playerEl.style.transform = `translate3d(${pState.x}px, ${pState.y}px, 0)`;
-    npcEl.style.transform = `translate3d(${nState.x}px, ${nState.y}px, 0)`;
-
-    // Camera follow Player
-    const camX = Math.max(0, Math.min(pState.x - window.innerWidth * 0.3, 4200 - window.innerWidth));
+    // Camera follows selected POV actor
+    const target = actors[cameraTargetIndex] || actors[0];
+    const camX = Math.max(0, Math.min(target.x - window.innerWidth * 0.3, 4200 - window.innerWidth));
     worldEl.style.transform = `translate3d(${-camX}px, 0, 0)`;
 
     requestAnimationFrame(gameLoop);
@@ -765,11 +936,61 @@
 
   document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('menu').style.display = 'none';
-    document.getElementById('npc-diff-label').textContent = npcDiff.toUpperCase();
-    if (mobileToggle.checked) {
-      mobileControls.classList.add('active');
-    }
     initWorldDOM();
+
+    if (gameMode === 'play') {
+      if (mobileToggle.checked) {
+        mobileControls.classList.add('active');
+      }
+      actors.push(createActor({
+        name: 'YOU',
+        isPlayer: true,
+        diff: null,
+        color: '#ff2a2a',
+        borderColor: '#800000',
+        startX: 80
+      }));
+      actors.push(createActor({
+        name: `NPC (${soloNpcDiff.toUpperCase()})`,
+        isPlayer: false,
+        diff: soloNpcDiff,
+        color: '#00d0ff',
+        borderColor: '#004d66',
+        startX: 80
+      }));
+      cameraTargetIndex = 0;
+    } else {
+      // Spectate Fight Mode
+      document.getElementById('hud-mobile-btn').style.display = 'none';
+      const s1 = document.getElementById('spec-slot-1').value;
+      const s2 = document.getElementById('spec-slot-2').value;
+      const s3 = document.getElementById('spec-slot-3').value;
+      const chosenCam = parseInt(document.querySelector('input[name="init-cam"]:checked').value, 10);
+
+      const palette = [
+        { color: '#00d0ff', border: '#004d66' },
+        { color: '#ff66ff', border: '#660066' },
+        { color: '#aaff00', border: '#336600' }
+      ];
+
+      [s1, s2, s3].forEach((diffVal, idx) => {
+        if (diffVal !== 'none') {
+          actors.push(createActor({
+            name: `#${idx + 1} ${diffVal.toUpperCase()}`,
+            isPlayer: false,
+            diff: diffVal,
+            color: palette[idx].color,
+            borderColor: palette[idx].border,
+            startX: 70 + idx * 14 // slight stagger so you can see all 3 clearly
+          }));
+        }
+      });
+
+      cameraTargetIndex = Math.min(chosenCam, actors.length - 1);
+    }
+
+    renderHUD();
+    setupCameraButtons();
     gameRunning = true;
     requestAnimationFrame(gameLoop);
   });
