@@ -251,10 +251,13 @@
     border: 3px solid #4a2000;
     border-top: 5px solid #e09050;
   }
+  /* 100% INVISIBLE SKY BRIDGE — Blends completely into the sky! */
   .fake-bg-shortcut {
     position: absolute;
-    background: #4778d4;
-    border-top: 4px dashed rgba(255,255,255,0.12);
+    background: transparent;
+    border: none;
+    opacity: 0;
+    pointer-events: none;
     z-index: 1;
   }
   .fake-bush {
@@ -656,7 +659,7 @@
     { x: 1950, y: 390, w: 200, h: 24, type: 'platform' },
     { x: 2700, y: 410, w: 180, h: 24, type: 'platform' },
 
-    // REAL SOLID BUSHES & HIDDEN BRIDGES
+    // REAL SOLID BUSHES & INVISIBLE SKY BRIDGES
     { x: 260, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
     { x: 370, y: 310, w: 750, h: 22, type: 'fake-bg-shortcut', secret: true },
     { x: 1380, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
