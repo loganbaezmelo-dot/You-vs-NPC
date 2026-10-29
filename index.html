@@ -35,7 +35,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 14px;
     padding: 20px;
     text-align: center;
     overflow-y: auto;
@@ -47,7 +47,9 @@
   }
   .mode-tabs {
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
     margin-bottom: 4px;
   }
   .panel {
@@ -59,7 +61,7 @@
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    max-width: 650px;
+    max-width: 680px;
     width: 100%;
   }
   .diff-container {
@@ -93,7 +95,7 @@
     padding: 12px 42px;
   }
 
-  /* SPECTATE FIGHT ROSTER */
+  /* ROSTER CARDS */
   .slot-row {
     display: flex;
     gap: 12px;
@@ -105,11 +107,12 @@
     border: 2px solid #666;
     border-radius: 8px;
     padding: 10px 14px;
-    min-width: 150px;
+    min-width: 155px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     align-items: center;
+    justify-content: center;
   }
   .slot-card h4 {
     color: #ffcc00;
@@ -198,14 +201,13 @@
     border: 3px solid #4a2000;
     border-top: 5px solid #e09050;
   }
-  /* Fake background wall / secret shortcut */
   .fake-bg-shortcut {
     position: absolute;
     background: #4778d4;
     border-top: 4px dashed rgba(255,255,255,0.12);
     z-index: 1;
   }
-  /* Both solid and non-solid bushes use this exact same class so you can't tell which is real! */
+  /* Both solid and non-solid bushes use this exact same class */
   .fake-bush {
     position: absolute;
     background: #2d8a2d;
@@ -229,13 +231,25 @@
   }
   .actor-label {
     position: absolute;
-    top: -20px;
-    background: rgba(0,0,0,0.75);
+    top: -22px;
+    background: rgba(0,0,0,0.78);
     padding: 2px 6px;
     border-radius: 4px;
     white-space: nowrap;
     color: #fff;
     border: 1px solid rgba(255,255,255,0.4);
+  }
+  .strat-tag {
+    position: absolute;
+    top: -40px;
+    background: #ffcc00;
+    color: #000;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    white-space: nowrap;
+    display: none;
   }
 
   /* ENEMIES */
@@ -390,29 +404,58 @@
 
 <div id="menu">
   <h1>YOU VS NPC</h1>
-  <p>Stomp <b>Squishballs</b>, jump over <b>Mouthplants</b>, &amp; beware of fake background bushes!</p>
+  <p>Stomp <b>Squishballs</b>, jump over <b>Mouthplants</b>, &amp; outsmart the Hard NPCs!</p>
 
-  <!-- Mode Selector -->
+  <!-- 3 Mode Tabs -->
   <div class="mode-tabs">
-    <button class="btn selected" id="tab-play">🎮 YOU VS NPC</button>
+    <button class="btn selected" id="tab-play">🎮 1v1 (YOU VS NPC)</button>
+    <button class="btn" id="tab-3p">🔥 3-PLAYER (YOU VS 2 NPCs)</button>
     <button class="btn" id="tab-spectate">🍿 SPECTATE FIGHT</button>
   </div>
 
-  <!-- Panel 1: You vs NPC -->
+  <!-- Panel 1: 1v1 You vs NPC -->
   <div class="panel" id="panel-play">
     <p>Choose NPC Difficulty to race against:</p>
     <div class="diff-container" id="solo-diff">
-      <button class="btn selected" data-diff="easy">EASY (Late Reaction)</button>
-      <button class="btn" data-diff="medium">MEDIUM (Good Jump)</button>
-      <button class="btn" data-diff="hard">HARD (Knows Real Bushes)</button>
+      <button class="btn selected" data-diff="easy">EASY (Late + Varied)</button>
+      <button class="btn" data-diff="medium">MEDIUM (Good Jump + Varied)</button>
+      <button class="btn" data-diff="hard">HARD (Shortcuts + Strategies)</button>
     </div>
-    <label style="cursor:pointer; font-size:1.05rem; margin-top:6px;">
-      <input type="checkbox" id="mobile-toggle" style="transform:scale(1.4); margin-right:8px;">
-      Enable Mobile Controls (Stick + X Y A B)
-    </label>
   </div>
 
-  <!-- Panel 2: Spectate NPC Fight -->
+  <!-- Panel 2: 3-Player Mode (Slot 1 = YOU, Slot 2 & 3 = Any NPCs) -->
+  <div class="panel" id="panel-3p" style="display:none;">
+    <p><b>3-Player Chaos:</b> Slot #1 is <b>YOU</b>! Pick the NPCs for Slot #2 and Slot #3:</p>
+    <div class="slot-row">
+      <div class="slot-card" style="border-color:#ff4444;">
+        <h4 style="color:#ff4444;">SLOT #1</h4>
+        <div style="font-size:1.1rem; font-weight:bold; padding:8px 0;">🎮 YOU (PLAYER)</div>
+        <span style="font-size:0.8rem; color:#aaa;">3 Lives + Head Stomp</span>
+      </div>
+
+      <div class="slot-card">
+        <h4 style="color:#00d0ff;">SLOT #2 (NPC)</h4>
+        <select id="p3-slot-2" class="slot-select">
+          <option value="easy">EASY</option>
+          <option value="medium" selected>MEDIUM</option>
+          <option value="hard">HARD</option>
+        </select>
+        <span style="font-size:0.8rem; color:#aaa;">Rival #1</span>
+      </div>
+
+      <div class="slot-card">
+        <h4 style="color:#ff66ff;">SLOT #3 (NPC)</h4>
+        <select id="p3-slot-3" class="slot-select">
+          <option value="easy">EASY</option>
+          <option value="medium">MEDIUM</option>
+          <option value="hard" selected>HARD</option>
+        </select>
+        <span style="font-size:0.8rem; color:#aaa;">Rival #2</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 3: Spectate NPC Fight -->
   <div class="panel" id="panel-spectate" style="display:none;">
     <p>Pick up to <b>3 NPCs</b> to battle each other &amp; choose your starting POV camera:</p>
     <div class="slot-row">
@@ -445,18 +488,23 @@
         <select id="spec-slot-3" class="slot-select">
           <option value="none">-- OFF --</option>
           <option value="easy">EASY</option>
-          <option value="medium" selected>MEDIUM</option>
-          <option value="hard">HARD</option>
+          <option value="medium">MEDIUM</option>
+          <option value="hard" selected>HARD</option>
         </select>
         <label style="font-size:0.85rem; cursor:pointer;">
           <input type="radio" name="init-cam" value="2"> Watch POV
         </label>
       </div>
     </div>
-    <p style="font-size:0.85rem; color:#aaa;">(You can also switch cameras live at the top of the screen during the race!)</p>
   </div>
 
-  <button class="btn" id="start-btn">START</button>
+  <!-- Mobile Controls Checkbox (Visible in playable modes) -->
+  <label id="mobile-opt-wrap" style="cursor:pointer; font-size:1.05rem;">
+    <input type="checkbox" id="mobile-toggle" style="transform:scale(1.4); margin-right:8px;">
+    Enable Mobile Controls (Stick + X Y A B)
+  </label>
+
+  <button class="btn" id="start-btn">START RACE</button>
 </div>
 
 <div id="hud">
@@ -496,30 +544,42 @@
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   const mobileToggle = document.getElementById('mobile-toggle');
   const mobileControls = document.getElementById('mobile-controls');
+  const mobileOptWrap = document.getElementById('mobile-opt-wrap');
   if (isTouchDevice) mobileToggle.checked = true;
 
-  // Menu Mode Switching
-  let gameMode = 'play';
+  let gameMode = 'play'; // 'play', '3p', or 'spectate'
   const tabPlay = document.getElementById('tab-play');
+  const tab3P = document.getElementById('tab-3p');
   const tabSpec = document.getElementById('tab-spectate');
   const panelPlay = document.getElementById('panel-play');
+  const panel3P = document.getElementById('panel-3p');
   const panelSpec = document.getElementById('panel-spectate');
 
-  tabPlay.addEventListener('click', () => {
-    gameMode = 'play';
-    tabPlay.classList.add('selected');
-    tabSpec.classList.remove('selected');
-    panelPlay.style.display = 'flex';
-    panelSpec.style.display = 'none';
-  });
-
-  tabSpec.addEventListener('click', () => {
-    gameMode = 'spectate';
-    tabSpec.classList.add('selected');
-    tabPlay.classList.remove('selected');
-    panelSpec.style.display = 'flex';
+  function setMenuTab(mode) {
+    gameMode = mode;
+    [tabPlay, tab3P, tabSpec].forEach(t => t.classList.remove('selected'));
     panelPlay.style.display = 'none';
-  });
+    panel3P.style.display = 'none';
+    panelSpec.style.display = 'none';
+
+    if (mode === 'play') {
+      tabPlay.classList.add('selected');
+      panelPlay.style.display = 'flex';
+      mobileOptWrap.style.display = 'block';
+    } else if (mode === '3p') {
+      tab3P.classList.add('selected');
+      panel3P.style.display = 'flex';
+      mobileOptWrap.style.display = 'block';
+    } else {
+      tabSpec.classList.add('selected');
+      panelSpec.style.display = 'flex';
+      mobileOptWrap.style.display = 'none';
+    }
+  }
+
+  tabPlay.addEventListener('click', () => setMenuTab('play'));
+  tab3P.addEventListener('click', () => setMenuTab('3p'));
+  tabSpec.addEventListener('click', () => setMenuTab('spectate'));
 
   let soloNpcDiff = 'easy';
   document.querySelectorAll('#solo-diff .btn').forEach(btn => {
@@ -534,7 +594,6 @@
     mobileControls.classList.toggle('active');
   });
 
-  // World constants
   const GRAVITY = 0.65;
   const GROUND_Y = 520;
   const GOAL_X = 3650;
@@ -547,7 +606,7 @@
     { x: 1950, y: 390, w: 200, h: 24, type: 'platform' },
     { x: 2700, y: 410, w: 180, h: 24, type: 'platform' },
 
-    // REAL SOLID BUSHES & HIDDEN BRIDGES (Hard NPC knows these exact ones!)
+    // REAL SOLID BUSHES & HIDDEN BRIDGES
     { x: 260, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
     { x: 370, y: 310, w: 750, h: 22, type: 'fake-bg-shortcut', secret: true },
     { x: 1380, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
@@ -556,15 +615,15 @@
     { x: 2600, y: 305, w: 820, h: 22, type: 'fake-bg-shortcut', secret: true }
   ];
 
-  // DECOY NON-SOLID BUSHES (Look 100% identical to the solid bushes, but you fall straight through them!)
+  // DECOY NON-SOLID BUSHES
   const decoBushes = [
     { x: 140, y: 415, w: 90, h: 105 },
     { x: 690, y: 415, w: 90, h: 105 },
-    { x: 830, y: 415, w: 90, h: 105 }, // Bait bush right on top of a Mouthplant 💀
+    { x: 830, y: 415, w: 90, h: 105 },
     { x: 1020, y: 415, w: 90, h: 105 },
     { x: 1250, y: 415, w: 90, h: 105 },
     { x: 1750, y: 415, w: 90, h: 105 },
-    { x: 2220, y: 415, w: 90, h: 105 }, // Another bait bush right on a Mouthplant 💀
+    { x: 2220, y: 415, w: 90, h: 105 },
     { x: 2960, y: 415, w: 90, h: 105 },
     { x: 3440, y: 415, w: 90, h: 105 }
   ];
@@ -582,7 +641,6 @@
     { type: 'squishball', x: 3350, y: GROUND_Y - 32, vx: -3.4, minX: 3100, maxX: 3550 }
   ];
 
-  // Hard NPC only triggers shortcut jumps before the REAL solid bushes (260, 1380, 2490) and onto the sky bridges
   const hardShortcutTriggerX = [215, 330, 1340, 1445, 2445, 2550];
 
   const worldEl = document.getElementById('world');
@@ -592,19 +650,28 @@
 
   let actors = [];
   let cameraTargetIndex = 0;
+  let tickCount = 0;
 
-  function createActor({ name, isPlayer, diff, color, borderColor, startX }) {
+  function createActor({ id, name, isPlayer, diff, color, borderColor, startX }) {
     const el = document.createElement('div');
     el.className = 'actor';
     el.style.background = color;
     el.style.border = `3px solid ${borderColor}`;
+    if (isPlayer) el.style.zIndex = 14;
+
     const label = document.createElement('div');
     label.className = 'actor-label';
     label.textContent = name;
     el.appendChild(label);
+
+    const stratTag = document.createElement('div');
+    stratTag.className = 'strat-tag';
+    el.appendChild(stratTag);
+
     worldEl.appendChild(el);
 
     return {
+      id,
       name,
       isPlayer,
       diff,
@@ -617,16 +684,30 @@
       onGround: false,
       lives: 3,
       deaths: 0,
+      stunTimer: 0,
+      phaseOffset: Math.random() * Math.PI * 2,
+      reactionJitter: (Math.random() - 0.5) * 26,
+      easyLuckBias: (Math.random() - 0.5) * 0.16,
       decidedEnemyIds: new Set(),
-      el
+      usedBaitBushes: new Set(),
+      el,
+      stratTag
     };
+  }
+
+  function showStratTag(actor, text) {
+    actor.stratTag.textContent = text;
+    actor.stratTag.style.display = 'block';
+    clearTimeout(actor.tagTimeout);
+    actor.tagTimeout = setTimeout(() => {
+      actor.stratTag.style.display = 'none';
+    }, 650);
   }
 
   function initWorldDOM() {
     goalEl.style.left = GOAL_X + 'px';
     goalEl.style.top = (GROUND_Y - 350) + 'px';
 
-    // Render non-solid decoy bushes first
     decoBushes.forEach(b => {
       const div = document.createElement('div');
       div.className = 'fake-bush';
@@ -637,7 +718,6 @@
       worldEl.appendChild(div);
     });
 
-    // Render solid platforms, ground, and real solid bushes
     solids.forEach(s => {
       const div = document.createElement('div');
       div.className = s.type;
@@ -807,13 +887,14 @@
       actor.lives--;
       renderHUD();
       if (actor.lives <= 0) {
-        endGame(false, "You ran out of lives! Got cooked by the enemies 💀");
+        endGame(false, "You ran out of lives! Got cooked by the level 💀");
         return;
       }
     } else {
       renderHUD();
     }
-    actor.x = Math.max(60, actor.x - 250);
+    actor.reactionJitter = (Math.random() - 0.5) * 26;
+    actor.x = Math.max(60, actor.x - (235 + Math.random() * 35));
     actor.y = 180;
     actor.vx = 0;
     actor.vy = 0;
@@ -822,43 +903,129 @@
 
   function updateNPCAI(npc) {
     const diff = npc.diff;
-    const speed = diff === 'easy' ? 3.5 : (diff === 'medium' ? 4.3 : 4.9);
+    const baseSpeed = diff === 'easy' ? 3.5 : (diff === 'medium' ? 4.3 : 4.9);
     const jumpStrength = diff === 'easy' ? -11.6 : -13.6;
-    npc.vx = speed;
 
-    if (!npc.onGround) return;
+    const rhythmWave = Math.sin(tickCount * 0.05 + npc.phaseOffset) * 0.28;
+    let targetSpeed = baseSpeed + rhythmWave;
 
-    // HARD MODE: Knows exactly which bushes are solid and ignores all decoy bushes
+    const rivals = actors.filter(a => a.id !== npc.id);
+
+    // HARD MODE RIVAL TRACKING & ACTIVE SABOTAGE STRATEGIES
     if (diff === 'hard') {
-      for (let tx of hardShortcutTriggerX) {
-        if (Math.abs(npc.x - tx) < 12) {
-          npc.vy = jumpStrength;
-          npc.onGround = false;
-          return;
+      let rivalAhead = false;
+      let closeFollower = null;
+      let stompTarget = null;
+
+      for (let r of rivals) {
+        const dx = r.x - npc.x;
+        const dy = Math.abs(r.y - npc.y);
+
+        if (dx > 15) rivalAhead = true;
+        if (dx < -15 && dx > -190) closeFollower = r;
+        if (dx > 18 && dx < 68 && dy < 45) stompTarget = r;
+      }
+
+      if (rivalAhead) {
+        targetSpeed += 0.52;
+        if (tickCount % 45 === 0) showStratTag(npc, "⚡SURGE");
+      }
+
+      if (npc.onGround && stompTarget && Math.random() < 0.15) {
+        npc.vy = jumpStrength;
+        npc.onGround = false;
+        showStratTag(npc, "👟STOMP!");
+        return;
+      }
+
+      if (npc.onGround && closeFollower) {
+        for (let bIdx = 0; bIdx < decoBushes.length; bIdx++) {
+          const b = decoBushes[bIdx];
+          if (Math.abs(npc.x - (b.x - 35)) < 12 && !npc.usedBaitBushes.has(bIdx)) {
+            npc.usedBaitBushes.add(bIdx);
+            const dangerAhead = enemies.some(e => e.alive && e.x - npc.x > 20 && e.x - npc.x < 170);
+            if (!dangerAhead) {
+              npc.vy = -8.2;
+              npc.onGround = false;
+              showStratTag(npc, "🎭BAIT!");
+              return;
+            }
+          }
+        }
+      }
+
+      if (npc.onGround) {
+        for (let tx of hardShortcutTriggerX) {
+          const personalTx = tx + (npc.reactionJitter * 0.35);
+          if (Math.abs(npc.x - personalTx) < 11) {
+            const crowdedByOtherHard = rivals.some(r => r.diff === 'hard' && Math.abs(r.x - npc.x) < 24 && Math.abs(r.y - npc.y) < 30);
+            if (crowdedByOtherHard && (tx === 215 || tx === 1340 || tx === 2445) && Math.random() < 0.35) {
+              targetSpeed += 0.7;
+              showStratTag(npc, "🔥LOW ROUTE");
+            } else {
+              npc.vy = jumpStrength;
+              npc.onGround = false;
+              return;
+            }
+          }
         }
       }
     }
 
-    // Check upcoming enemies
+    if (npc.stunTimer > 0) {
+      npc.stunTimer--;
+      targetSpeed *= 0.45;
+    }
+
+    npc.vx = targetSpeed;
+    if (!npc.onGround) return;
+
+    // ENEMY REACTION
     for (let e of enemies) {
       if (!e.alive) continue;
       const dist = e.x - npc.x;
-      if (dist < 0 || dist > 220) continue;
+      if (dist < 0 || dist > 230) continue;
 
       if (diff === 'easy') {
-        if (dist < 34 && !npc.decidedEnemyIds.has(e.id)) {
+        const easyTriggerDist = 36 + npc.reactionJitter * 0.9;
+        if (dist < easyTriggerDist && !npc.decidedEnemyIds.has(e.id)) {
           npc.decidedEnemyIds.add(e.id);
-          if (Math.random() < 0.28) {
-            npc.vy = jumpStrength;
+          if (Math.random() < (0.30 + npc.easyLuckBias)) {
+            npc.vy = jumpStrength + (Math.random() - 0.5) * 1.2;
             npc.onGround = false;
+            npc.reactionJitter = (Math.random() - 0.5) * 26;
           }
         }
       } else {
-        const sweetSpot = e.type === 'mouthplant' ? 95 : 85;
-        if (dist <= sweetSpot && dist > 30) {
+        const baseSweetSpot = e.type === 'mouthplant' ? 98 : 86;
+        const personalSweetSpot = baseSweetSpot + npc.reactionJitter;
+        if (dist <= personalSweetSpot && dist > 28) {
           npc.vy = jumpStrength;
           npc.onGround = false;
+          npc.reactionJitter = (Math.random() - 0.5) * 24;
           return;
+        }
+      }
+    }
+  }
+
+  // Player AND Hard NPCs can head-bounce off rivals in mid-air!
+  function handlePvPCollisions() {
+    for (let i = 0; i < actors.length; i++) {
+      const a = actors[i];
+      if (!a.isPlayer && a.diff !== 'hard') continue;
+
+      for (let j = 0; j < actors.length; j++) {
+        if (i === j) continue;
+        const b = actors[j];
+        if (rectsOverlap(a, b)) {
+          if (a.vy > 0 && (a.y + a.h - a.vy) <= b.y + 20) {
+            a.vy = -12.2;
+            a.vx += 1.2;
+            b.vy = Math.max(b.vy, 6.0);
+            b.stunTimer = 28;
+            showStratTag(a, "💥HEAD BOUNCE!");
+          }
         }
       }
     }
@@ -901,10 +1068,15 @@
 
   function gameLoop() {
     if (!gameRunning) return;
+    tickCount++;
 
     for (let a of actors) {
       if (a.isPlayer) {
-        const moveSpeed = keys.sprint ? 5.6 : 4.3;
+        let moveSpeed = keys.sprint ? 5.6 : 4.3;
+        if (a.stunTimer > 0) {
+          a.stunTimer--;
+          moveSpeed *= 0.55;
+        }
         if (keys.left) a.vx = -moveSpeed;
         else if (keys.right) a.vx = moveSpeed;
         else a.vx *= 0.75;
@@ -918,6 +1090,8 @@
       }
       applyPhysics(a);
     }
+
+    handlePvPCollisions();
 
     for (let e of enemies) {
       if (!e.alive) continue;
@@ -933,14 +1107,14 @@
       if (!gameRunning) return;
 
       if (a.x >= GOAL_X) {
-        if (gameMode === 'play') {
+        const summary = actors.map(r => `${r.name} (💀${r.deaths})`).join(' | ');
+        if (gameMode === 'play' || gameMode === '3p') {
           if (a.isPlayer) {
-            endGame(true, `You beat ${actors[1].name} to the finish line!`);
+            endGame(true, `YOU WON THE RACE! Final Stats: ${summary}`);
           } else {
-            endGame(false, `${a.name} beat you to the flag! 💀`);
+            endGame(false, `${a.name} beat you to the flag! 💀 (${summary})`);
           }
         } else {
-          const summary = actors.map(r => `${r.name} (💀${r.deaths} deaths)`).join(' vs ');
           endGame(true, `${a.name} WON THE FIGHT! Final Stats: ${summary}`);
         }
         return;
@@ -961,27 +1135,64 @@
     initWorldDOM();
 
     if (gameMode === 'play') {
-      if (mobileToggle.checked) {
-        mobileControls.classList.add('active');
-      }
+      if (mobileToggle.checked) mobileControls.classList.add('active');
       actors.push(createActor({
+        id: 0,
         name: 'YOU',
         isPlayer: true,
         diff: null,
         color: '#ff2a2a',
         borderColor: '#800000',
-        startX: 80
+        startX: 70
       }));
       actors.push(createActor({
+        id: 1,
         name: `NPC (${soloNpcDiff.toUpperCase()})`,
         isPlayer: false,
         diff: soloNpcDiff,
         color: '#00d0ff',
         borderColor: '#004d66',
-        startX: 80
+        startX: 88
       }));
       cameraTargetIndex = 0;
+
+    } else if (gameMode === '3p') {
+      // 3-PLAYER MODE: Slot 1 = YOU, Slot 2 & 3 = Chosen NPCs
+      if (mobileToggle.checked) mobileControls.classList.add('active');
+      const npc2Diff = document.getElementById('p3-slot-2').value;
+      const npc3Diff = document.getElementById('p3-slot-3').value;
+
+      actors.push(createActor({
+        id: 0,
+        name: 'YOU',
+        isPlayer: true,
+        diff: null,
+        color: '#ff2a2a',
+        borderColor: '#800000',
+        startX: 70
+      }));
+      actors.push(createActor({
+        id: 1,
+        name: `#2 ${npc2Diff.toUpperCase()}`,
+        isPlayer: false,
+        diff: npc2Diff,
+        color: '#00d0ff',
+        borderColor: '#004d66',
+        startX: 88
+      }));
+      actors.push(createActor({
+        id: 2,
+        name: `#3 ${npc3Diff.toUpperCase()}`,
+        isPlayer: false,
+        diff: npc3Diff,
+        color: '#ff66ff',
+        borderColor: '#660066',
+        startX: 106
+      }));
+      cameraTargetIndex = 0;
+
     } else {
+      // SPECTATE FIGHT MODE
       document.getElementById('hud-mobile-btn').style.display = 'none';
       const s1 = document.getElementById('spec-slot-1').value;
       const s2 = document.getElementById('spec-slot-2').value;
@@ -997,12 +1208,13 @@
       [s1, s2, s3].forEach((diffVal, idx) => {
         if (diffVal !== 'none') {
           actors.push(createActor({
+            id: idx,
             name: `#${idx + 1} ${diffVal.toUpperCase()}`,
             isPlayer: false,
             diff: diffVal,
             color: palette[idx].color,
             borderColor: palette[idx].border,
-            startX: 70 + idx * 14
+            startX: 70 + idx * 18
           }));
         }
       });
