@@ -205,6 +205,7 @@
     border-top: 4px dashed rgba(255,255,255,0.12);
     z-index: 1;
   }
+  /* Both solid and non-solid bushes use this exact same class so you can't tell which is real! */
   .fake-bush {
     position: absolute;
     background: #2d8a2d;
@@ -389,7 +390,7 @@
 
 <div id="menu">
   <h1>YOU VS NPC</h1>
-  <p>Stomp <b>Squishballs</b> &amp; jump over <b>Mouthplants</b>!</p>
+  <p>Stomp <b>Squishballs</b>, jump over <b>Mouthplants</b>, &amp; beware of fake background bushes!</p>
 
   <!-- Mode Selector -->
   <div class="mode-tabs">
@@ -403,7 +404,7 @@
     <div class="diff-container" id="solo-diff">
       <button class="btn selected" data-diff="easy">EASY (Late Reaction)</button>
       <button class="btn" data-diff="medium">MEDIUM (Good Jump)</button>
-      <button class="btn" data-diff="hard">HARD (Secret Shortcuts)</button>
+      <button class="btn" data-diff="hard">HARD (Knows Real Bushes)</button>
     </div>
     <label style="cursor:pointer; font-size:1.05rem; margin-top:6px;">
       <input type="checkbox" id="mobile-toggle" style="transform:scale(1.4); margin-right:8px;">
@@ -498,7 +499,7 @@
   if (isTouchDevice) mobileToggle.checked = true;
 
   // Menu Mode Switching
-  let gameMode = 'play'; // 'play' or 'spectate'
+  let gameMode = 'play';
   const tabPlay = document.getElementById('tab-play');
   const tabSpec = document.getElementById('tab-spectate');
   const panelPlay = document.getElementById('panel-play');
@@ -538,7 +539,7 @@
   const GROUND_Y = 520;
   const GOAL_X = 3650;
 
-  // Level Geometry
+  // SOLID Level Geometry (Includes ONLY the real solid bushes & sky bridges)
   const solids = [
     { x: 0, y: GROUND_Y, w: 4200, h: 300, type: 'ground' },
     { x: 500, y: 410, w: 160, h: 24, type: 'platform' },
@@ -546,12 +547,26 @@
     { x: 1950, y: 390, w: 200, h: 24, type: 'platform' },
     { x: 2700, y: 410, w: 180, h: 24, type: 'platform' },
 
-    // HIDDEN BACKGROUND SHORTCUTS (Used by Hard NPC)
+    // REAL SOLID BUSHES & HIDDEN BRIDGES (Hard NPC knows these exact ones!)
     { x: 260, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
     { x: 370, y: 310, w: 750, h: 22, type: 'fake-bg-shortcut', secret: true },
     { x: 1380, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
     { x: 1500, y: 300, w: 950, h: 22, type: 'fake-bg-shortcut', secret: true },
+    { x: 2490, y: 415, w: 90, h: 105, type: 'fake-bush', secret: true },
     { x: 2600, y: 305, w: 820, h: 22, type: 'fake-bg-shortcut', secret: true }
+  ];
+
+  // DECOY NON-SOLID BUSHES (Look 100% identical to the solid bushes, but you fall straight through them!)
+  const decoBushes = [
+    { x: 140, y: 415, w: 90, h: 105 },
+    { x: 690, y: 415, w: 90, h: 105 },
+    { x: 830, y: 415, w: 90, h: 105 }, // Bait bush right on top of a Mouthplant 💀
+    { x: 1020, y: 415, w: 90, h: 105 },
+    { x: 1250, y: 415, w: 90, h: 105 },
+    { x: 1750, y: 415, w: 90, h: 105 },
+    { x: 2220, y: 415, w: 90, h: 105 }, // Another bait bush right on a Mouthplant 💀
+    { x: 2960, y: 415, w: 90, h: 105 },
+    { x: 3440, y: 415, w: 90, h: 105 }
   ];
 
   let enemies = [];
@@ -567,14 +582,14 @@
     { type: 'squishball', x: 3350, y: GROUND_Y - 32, vx: -3.4, minX: 3100, maxX: 3550 }
   ];
 
-  const hardShortcutTriggerX = [215, 330, 1340, 1445, 2540];
+  // Hard NPC only triggers shortcut jumps before the REAL solid bushes (260, 1380, 2490) and onto the sky bridges
+  const hardShortcutTriggerX = [215, 330, 1340, 1445, 2445, 2550];
 
   const worldEl = document.getElementById('world');
   const goalEl = document.getElementById('goal');
   const statsHud = document.getElementById('stats-hud');
   const camButtonsContainer = document.getElementById('cam-buttons');
 
-  // Dynamic list of racers (Player + NPCs or up to 3 NPCs)
   let actors = [];
   let cameraTargetIndex = 0;
 
@@ -611,6 +626,18 @@
     goalEl.style.left = GOAL_X + 'px';
     goalEl.style.top = (GROUND_Y - 350) + 'px';
 
+    // Render non-solid decoy bushes first
+    decoBushes.forEach(b => {
+      const div = document.createElement('div');
+      div.className = 'fake-bush';
+      div.style.left = b.x + 'px';
+      div.style.top = b.y + 'px';
+      div.style.width = b.w + 'px';
+      div.style.height = b.h + 'px';
+      worldEl.appendChild(div);
+    });
+
+    // Render solid platforms, ground, and real solid bushes
     solids.forEach(s => {
       const div = document.createElement('div');
       div.className = s.type;
@@ -801,7 +828,7 @@
 
     if (!npc.onGround) return;
 
-    // HARD MODE: Prebuilt map of hidden background shortcuts
+    // HARD MODE: Knows exactly which bushes are solid and ignores all decoy bushes
     if (diff === 'hard') {
       for (let tx of hardShortcutTriggerX) {
         if (Math.abs(npc.x - tx) < 12) {
@@ -875,7 +902,6 @@
   function gameLoop() {
     if (!gameRunning) return;
 
-    // Update all racers
     for (let a of actors) {
       if (a.isPlayer) {
         const moveSpeed = keys.sprint ? 5.6 : 4.3;
@@ -893,7 +919,6 @@
       applyPhysics(a);
     }
 
-    // Update Enemies
     for (let e of enemies) {
       if (!e.alive) continue;
       if (e.type === 'squishball') {
@@ -903,7 +928,6 @@
       e.el.style.transform = `translate3d(${e.x}px, ${e.y}px, 0)`;
     }
 
-    // Check Collisions & Finish Line
     for (let a of actors) {
       handleEnemyCollisions(a);
       if (!gameRunning) return;
@@ -916,7 +940,6 @@
             endGame(false, `${a.name} beat you to the flag! 💀`);
           }
         } else {
-          // Spectate Fight Winner Breakdown
           const summary = actors.map(r => `${r.name} (💀${r.deaths} deaths)`).join(' vs ');
           endGame(true, `${a.name} WON THE FIGHT! Final Stats: ${summary}`);
         }
@@ -926,7 +949,6 @@
       a.el.style.transform = `translate3d(${a.x}px, ${a.y}px, 0)`;
     }
 
-    // Camera follows selected POV actor
     const target = actors[cameraTargetIndex] || actors[0];
     const camX = Math.max(0, Math.min(target.x - window.innerWidth * 0.3, 4200 - window.innerWidth));
     worldEl.style.transform = `translate3d(${-camX}px, 0, 0)`;
@@ -960,7 +982,6 @@
       }));
       cameraTargetIndex = 0;
     } else {
-      // Spectate Fight Mode
       document.getElementById('hud-mobile-btn').style.display = 'none';
       const s1 = document.getElementById('spec-slot-1').value;
       const s2 = document.getElementById('spec-slot-2').value;
@@ -981,7 +1002,7 @@
             diff: diffVal,
             color: palette[idx].color,
             borderColor: palette[idx].border,
-            startX: 70 + idx * 14 // slight stagger so you can see all 3 clearly
+            startX: 70 + idx * 14
           }));
         }
       });
